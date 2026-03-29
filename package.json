@@ -1,0 +1,75 @@
+{
+  "name": "@aliou/nvim-pi",
+  "version": "0.1.0",
+  "description": "Neovim plugin with bundled Pi extension for editor-aware context, reloads, and diagnostics",
+  "type": "module",
+  "license": "MIT",
+  "private": false,
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "pi",
+    "neovim",
+    "nvim"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aliou/nvim-pi"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "dependencies": {
+    "@aliou/pi-utils-settings": "^0.11.2",
+    "@aliou/pi-utils-ui": "^0.1.4"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-ai": ">=0.63.1",
+    "@mariozechner/pi-coding-agent": ">=0.63.1",
+    "@mariozechner/pi-tui": ">=0.63.1",
+    "@sinclair/typebox": ">=0.34.49"
+  },
+  "peerDependenciesMeta": {
+    "@mariozechner/pi-ai": {
+      "optional": true
+    },
+    "@mariozechner/pi-coding-agent": {
+      "optional": true
+    },
+    "@mariozechner/pi-tui": {
+      "optional": true
+    },
+    "@sinclair/typebox": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@aliou/biome-plugins": "^0.3.2",
+    "@biomejs/biome": "^2.3.13",
+    "@mariozechner/pi-ai": "0.63.1",
+    "@mariozechner/pi-coding-agent": "0.63.1",
+    "@mariozechner/pi-tui": "0.63.1",
+    "@sinclair/typebox": "^0.34.49",
+    "@types/node": "^25.5.0",
+    "lefthook": "^1.11.12",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "@mariozechner/pi-ai": "$@mariozechner/pi-coding-agent",
+      "@mariozechner/pi-tui": "$@mariozechner/pi-coding-agent"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check",
+    "format": "biome check --write",
+    "test": "vitest run",
+    "check:lockfile": "pnpm install --frozen-lockfile --ignore-scripts",
+    "prepare": "[ -d .git ] && lefthook install || true"
+  },
+  "packageManager": "pnpm@10.26.1"
+}

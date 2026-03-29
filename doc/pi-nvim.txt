@@ -1,0 +1,166 @@
+*pi-nvim.txt*  Pi integration for Neovim
+
+CONTENTS                                                    *pi-nvim-contents*
+
+    1. Introduction .......................... |pi-nvim-introduction|
+    2. Setup ................................. |pi-nvim-setup|
+    3. Configuration ......................... |pi-nvim-config|
+    4. Commands .............................. |pi-nvim-commands|
+    5. Keymaps ............................... |pi-nvim-keymaps|
+    6. API ................................... |pi-nvim-api|
+    7. Notes ................................. |pi-nvim-notes|
+
+==============================================================================
+1. INTRODUCTION                                         *pi-nvim-introduction*
+
+pi-nvim is a Neovim plugin that launches Pi with a bundled Pi extension.
+The extension lets Pi discover the current Neovim instance, inspect visible
+editor state, reload files after writes, and fetch diagnostics for modified
+files.
+
+==============================================================================
+2. SETUP                                                      *pi-nvim-setup*
+
+Install the repo as a Neovim plugin and call setup:
+>lua
+    {
+      dir = "/absolute/path/to/nvim-pi",
+      config = function()
+        require("pi-nvim").setup()
+      end,
+    }
+<
+
+Or manually:
+>lua
+    vim.opt.runtimepath:append("/absolute/path/to/nvim-pi")
+    require("pi-nvim").setup()
+<
+
+Requirements:
+- `pi` executable on PATH
+- a Neovim build with `serverstart()` support
+
+When opening Pi from Neovim, the plugin launches:
+>
+    pi --extension /absolute/path/to/nvim-pi
+<
+
+==============================================================================
+3. CONFIGURATION                                             *pi-nvim-config*
+
+>lua
+    require("pi-nvim").setup({
+      auto_start = true,
+      data_dir = nil,
+      models = nil,
+      provider = nil,
+      model = nil,
+      thinking = nil,
+      extra_args = nil,
+      win = {
+        layout = "auto",
+        width_threshold = 150,
+        width = 80,
+        height = 20,
+        focus_source_on_stopinsert = true,
+        keys = {
+          close = { "<C-q>", mode = "n", desc = "Close Pi" },
+          stopinsert = { "<C-q>", mode = "t", desc = "Exit terminal mode" },
+          suspend = { "<C-z>", mode = "t", desc = "Suspend Neovim" },
+          picker = { "<C-Space>", mode = "t", desc = "Open context picker" },
+        },
+      },
+    })
+<
+
+auto_start                                                *pi-nvim-config-auto_start*
+    Start the RPC server automatically during setup.
+
+data_dir                                                    *pi-nvim-config-data_dir*
+    Override the directory used for sockets and lockfiles.
+    Default: stdpath("data") .. "/pi-nvim"
+
+models                                                      *pi-nvim-config-models*
+provider                                                  *pi-nvim-config-provider*
+model                                                        *pi-nvim-config-model*
+thinking                                                  *pi-nvim-config-thinking*
+extra_args                                                *pi-nvim-config-extra_args*
+    Passed through to the Pi CLI when pi-nvim opens Pi.
+
+win.layout                                                *pi-nvim-config-win-layout*
+    One of: "auto", "right", "left", "top", "bottom", "float".
+
+win.width_threshold                               *pi-nvim-config-win-width_threshold*
+    Column threshold used when `layout = "auto"`.
+
+win.width                                                  *pi-nvim-config-win-width*
+win.height                                                *pi-nvim-config-win-height*
+    Split dimensions.
+
+win.focus_source_on_stopinsert         *pi-nvim-config-win-focus_source_on_stopinsert*
+    When enabled, focus returns to the source window on stopinsert.
+
+win.keys                                                    *pi-nvim-config-win-keys*
+    Window-local key definitions for close, stopinsert, suspend, and picker.
+
+==============================================================================
+4. COMMANDS                                                *pi-nvim-commands*
+
+:PiNvimStatus                                               *:PiNvimStatus*
+    Show the current RPC server state and whether the Pi terminal is open.
+
+==============================================================================
+5. KEYMAPS                                                  *pi-nvim-keymaps*
+
+pi-nvim does not define global leader mappings by default.
+
+Example user mappings:
+>lua
+    vim.keymap.set("n", "<leader>po", require("pi-nvim").open, { desc = "Open Pi" })
+    vim.keymap.set("n", "<leader>pc", require("pi-nvim").close, { desc = "Close Pi" })
+    vim.keymap.set("n", "<leader>pp", require("pi-nvim").toggle, { desc = "Toggle Pi" })
+<
+
+Window-local terminal keys are configured through `setup({ win = { keys = ... } })`.
+
+==============================================================================
+6. API                                                          *pi-nvim-api*
+
+require("pi-nvim").setup({opts})                          *pi-nvim.setup()*
+    Initialize the plugin with optional configuration.
+
+require("pi-nvim").start()                                *pi-nvim.start()*
+    Start the RPC server manually.
+
+require("pi-nvim").stop()                                  *pi-nvim.stop()*
+    Stop the RPC server manually.
+
+require("pi-nvim").status()                              *pi-nvim.status()*
+    Return the current RPC state.
+
+require("pi-nvim").open()                                  *pi-nvim.open()*
+    Open the Pi terminal.
+
+require("pi-nvim").close()                                *pi-nvim.close()*
+    Close the Pi terminal.
+
+require("pi-nvim").toggle()                              *pi-nvim.toggle()*
+    Toggle the Pi terminal.
+
+require("pi-nvim").query(action)                          *pi-nvim.query()*
+    Entry point used by the bundled Pi extension through `nvim --remote-expr`.
+
+==============================================================================
+7. NOTES                                                        *pi-nvim-notes*
+
+The bundled Pi extension also works when installed directly with:
+>
+    pi install pi:github.com/aliou/nvim-pi
+<
+
+When no Neovim instance is running, the extension still loads cleanly and
+reports that no instance was found when context is requested.
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
