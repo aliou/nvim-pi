@@ -31,6 +31,7 @@ src/
   index.ts            # Extension entry, registers hooks, tools, commands, renderers
   config.ts           # Configuration loading and defaults
   nvim.ts             # Lockfile discovery + remote-expr RPC
+  nvim.test.ts        # Tests for nvim.ts
   tools/              # LLM tools
   hooks/              # Event hooks
   commands/           # Slash commands
@@ -38,6 +39,12 @@ src/
   utils/              # Shared connection helpers and RPC result types
 lua/
   pi-nvim/            # Neovim plugin
+    init.lua           # Plugin entry: setup(), query(), API exports
+    config.lua         # User config defaults and merging
+    health.lua         # :checkhealth pi-nvim
+    actions/           # RPC query handlers (context, splits, diagnostics, reload, notify, ...)
+    cli/               # Pi terminal management (open/close/toggle), picker, file-watch timer
+    rpc/               # RPC server, lockfile creation, state
 ```
 
 ## Entry point deviation

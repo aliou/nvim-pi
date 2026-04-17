@@ -28,6 +28,8 @@ Behavior provided by hooks:
 - starts a Neovim RPC server and writes lockfiles Pi can discover
 - opens Pi in a terminal split or float
 - passes through selected Pi CLI flags
+- runs a periodic `checktime` timer while Pi is open to detect external file changes
+- provides a context picker (`<C-Space>` by default) to send editor context to Pi
 - exposes `:PiNvimStatus`
 
 ## Setup
@@ -106,7 +108,7 @@ require("pi-nvim").setup({
     width_threshold = 150,
     width = 80,
     height = 20,
-    focus_source_on_stopinsert = true,
+    focus_source_on_stopinsert = true, -- switch to source window on exiting terminal mode
     keys = {
       close = { "<C-q>", mode = "n", desc = "Close Pi" },
       stopinsert = { "<C-q>", mode = "t", desc = "Exit terminal mode" },
@@ -153,6 +155,7 @@ Commands and API:
 - `require("pi-nvim").start()` - start the RPC server manually
 - `require("pi-nvim").stop()` - stop the RPC server manually
 - `require("pi-nvim").status()` - get the current RPC state
+- `require("pi-nvim").is_open()` - check if the Pi terminal is open
 
 ## Troubleshooting
 
@@ -174,7 +177,7 @@ Pi will prompt for selection in interactive mode. In non-interactive mode, the t
 ### RPC server errors
 
 Check:
-- `~/.local/state/nvim/pi-nvim/rpc.log`
+- `<stdpath('log')>/pi-nvim/rpc.log` (typically `~/.local/state/nvim/pi-nvim/rpc.log`)
 - `:PiNvimStatus`
 
 ### Healthcheck
@@ -192,17 +195,22 @@ require("pi-nvim").setup()                    pi --extension /path/to/nvim-pi
           |                                                   |
           v                                                   v
    rpc.start()                                     src/index.ts registers:
-   lockfile.create()                               - hooks
-          |                                        - tool
-          v                                        - command
-~/.local/share/nvim/pi-nvim/                                   |
-<cwd-hash>-<pid>.json                                           v
+   lockfile.create()                               - hooks (system prompt, nvim context)
+          |                                      - tool (nvim_context)
+          v                                      - command (/neovim:settings)
+~/.local/share/nvim/pi-nvim/                       - renderers (connection, diagnostics)
+<cwd-hash>-<pid>.json                                           |
           |                                          session_start discovers lockfile
           |                                          before_agent_start queries splits
           |                                          tool_result reloads files
           |                                          turn_end requests diagnostics
           v                                                   |
    nvim --server <socket> --remote-expr <luaeval(...)> <------+
+
+Additional Lua features:
+  cli/terminal     open/close/toggle Pi in a split or float
+  cli/picker       <C-Space> context picker to send info to Pi
+  cli/watch        periodic checktime timer while Pi is open
 ```
 
 The TypeScript extension discovers Neovim instances through lockfiles, then queries the running editor through `nvim --remote-expr`, which evaluates `require("pi-nvim").query(...)` inside Neovim.
