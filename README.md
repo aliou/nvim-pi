@@ -1,3 +1,5 @@
+![banner](https://assets.aliou.me/pi-extensions/banners/nvim-pi.png)
+
 # @aliou/nvim-pi
 
 Neovim plugin with a bundled Pi extension.
