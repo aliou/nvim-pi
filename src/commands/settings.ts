@@ -21,6 +21,7 @@ export function registerNeovimSettings(pi: ExtensionAPI): void {
     ): SettingsSection[] => {
       const showMessages =
         tabConfig?.showConnectionMessages ?? resolved.showConnectionMessages;
+      const follow = tabConfig?.follow ?? resolved.follow;
 
       return [
         {
@@ -36,13 +37,35 @@ export function registerNeovimSettings(pi: ExtensionAPI): void {
             },
           ],
         },
+        {
+          label: "Follow",
+          items: [
+            {
+              id: "follow",
+              label: "Follow file activity",
+              description:
+                "When enabled, Neovim follows agent reads and writes by jumping to the file and briefly highlighting the affected lines.",
+              currentValue: follow ? "on" : "off",
+              values: ["on", "off"],
+            },
+          ],
+        },
       ];
     },
     onSettingChange: (id, newValue, config): NvimConfig | null => {
-      if (id !== "showConnectionMessages") return null;
       const updated = structuredClone(config);
-      updated.showConnectionMessages = newValue === "on";
-      return updated;
+
+      if (id === "showConnectionMessages") {
+        updated.showConnectionMessages = newValue === "on";
+        return updated;
+      }
+
+      if (id === "follow") {
+        updated.follow = newValue === "on";
+        return updated;
+      }
+
+      return null;
     },
   });
 }

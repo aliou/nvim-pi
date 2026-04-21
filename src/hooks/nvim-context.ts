@@ -10,7 +10,11 @@
 
 import * as path from "node:path";
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type {
+  ExtensionAPI,
+  ToolCallEvent,
+  ToolResultEvent,
+} from "@mariozechner/pi-coding-agent";
 
 import type { ResolvedNvimConfig } from "../config";
 import { discoverNvim, queryNvim } from "../nvim";
@@ -80,6 +84,53 @@ function formatDiagnosticsMessage(
   }
 
   return lines.join("\n");
+}
+
+async function sendFollowEvent(
+  pi: ExtensionAPI,
+  state: NvimConnectionState,
+  payload:
+    | {
+        kind: "read";
+        path: string;
+        offset?: number;
+        limit?: number;
+      }
+    | {
+        kind: "edit";
+        path: string;
+        firstChangedLine?: number;
+      }
+    | {
+        kind: "write";
+        path: string;
+      },
+): Promise<void> {
+  if (!state.socket) return;
+
+  try {
+    await queryNvim(pi.exec, state.socket, {
+      type: "follow_event",
+      ...payload,
+    });
+  } catch {
+    // Ignore follow failures
+  }
+}
+
+function isFollowEnabled(getConfig: () => ResolvedNvimConfig): boolean {
+  return getConfig().follow;
+}
+
+function getAbsolutePath(cwd: string, filePath: string): string {
+  return path.resolve(cwd, filePath);
+}
+
+function getEditFirstChangedLine(event: ToolResultEvent): number | undefined {
+  if (event.toolName !== "edit") return undefined;
+
+  const details = event.details as { firstChangedLine?: number } | undefined;
+  return details?.firstChangedLine;
 }
 
 // ============================================================================
@@ -207,19 +258,35 @@ export function registerNvimContextHook(
   });
 
   // -------------------------------------------------------------------------
-  // Tool result: reload files and track modifications
+  // Tool call/result: follow reads, reload writes/edits, track modifications
   // -------------------------------------------------------------------------
 
+  pi.on("tool_call", async (event: ToolCallEvent, ctx) => {
+    if (!isFollowEnabled(getConfig)) return;
+    if (!state.socket) return;
+
+    if (event.toolName !== "read") return;
+
+    const filePath = event.input?.path;
+    if (typeof filePath !== "string") return;
+
+    await sendFollowEvent(pi, state, {
+      kind: "read",
+      path: getAbsolutePath(ctx.cwd, filePath),
+      offset:
+        typeof event.input.offset === "number" ? event.input.offset : undefined,
+      limit:
+        typeof event.input.limit === "number" ? event.input.limit : undefined,
+    });
+  });
+
   pi.on("tool_result", async (event, ctx) => {
-    // Track modified files for diagnostics at turn end
     if (event.toolName === "write" || event.toolName === "edit") {
       const filePath = event.input?.path as string | undefined;
       if (filePath && !event.isError) {
-        // Convert to absolute path for consistent tracking
-        const absPath = path.resolve(ctx.cwd, filePath);
+        const absPath = getAbsolutePath(ctx.cwd, filePath);
         state.modifiedFilesThisTurn.add(absPath);
 
-        // Notify Neovim to reload the file
         if (state.socket) {
           try {
             await queryNvim(
@@ -233,6 +300,21 @@ export function registerNvimContextHook(
             );
           } catch {
             // Ignore reload failures
+          }
+        }
+
+        if (isFollowEnabled(getConfig)) {
+          if (event.toolName === "edit") {
+            await sendFollowEvent(pi, state, {
+              kind: "edit",
+              path: absPath,
+              firstChangedLine: getEditFirstChangedLine(event),
+            });
+          } else {
+            await sendFollowEvent(pi, state, {
+              kind: "write",
+              path: absPath,
+            });
           }
         }
       }
