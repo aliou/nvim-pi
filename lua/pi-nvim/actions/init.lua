@@ -1,6 +1,6 @@
 local M = {}
 
----@alias pi.Action "context" | "diagnostics" | "current_function" | "splits" | "notify"
+---@alias pi.Action "context" | "diagnostics" | "current_function" | "splits" | "notify" | "follow_event"
 
 --- Dispatch an action query from Pi
 --- Actions can be strings (simple queries) or tables (with parameters)
@@ -19,6 +19,7 @@ function M.dispatch(action)
   -- Handlers that take parameters (action is a table with { type, ... })
   local param_handlers = {
     diagnostics_for_files = require('pi-nvim.actions.diagnostics_for_files'),
+    follow_event = require('pi-nvim.follow'),
     notify = require('pi-nvim.actions.notify'),
     reload = require('pi-nvim.actions.reload'),
   }
@@ -42,7 +43,8 @@ function M.dispatch(action)
     if not handler then
       return nil, 'Unknown action type: ' .. tostring(action.type)
     end
-    local ok, result = pcall(handler.execute, action)
+    local fn = handler.execute or handler.handle
+    local ok, result = pcall(fn, action)
     if not ok then
       return nil, tostring(result)
     end

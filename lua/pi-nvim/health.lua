@@ -47,6 +47,12 @@ function M.check()
   else
     health.info('Terminal: closed')
   end
+
+  if pi.follow and pi.follow.is_enabled() then
+    health.info('Follow mode: on')
+  else
+    health.info('Follow mode: off')
+  end
 end
 
 return M

@@ -15,6 +15,7 @@ local M = {}
 
 ---@class pi.Config
 ---@field auto_start? boolean Start RPC server on setup (default: true)
+---@field follow? boolean Enable follow mode by default (default: false)
 ---@field data_dir? string Override for lockfile/socket directory
 ---@field models? string Pi --models flag (e.g., "sonnet:high,haiku:low")
 ---@field provider? string Pi --provider flag
@@ -26,6 +27,7 @@ local M = {}
 ---@type pi.Config
 M.defaults = {
   auto_start = true,
+  follow = false,
   win = {
     layout = 'auto',
     width_threshold = 150,

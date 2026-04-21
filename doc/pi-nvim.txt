@@ -52,6 +52,7 @@ When opening Pi from Neovim, the plugin launches:
 >lua
     require("pi-nvim").setup({
       auto_start = true,
+      follow = false,
       data_dir = nil,
       models = nil,
       provider = nil,
@@ -76,6 +77,10 @@ When opening Pi from Neovim, the plugin launches:
 
 auto_start                                                *pi-nvim-config-auto_start*
     Start the RPC server automatically during setup.
+
+follow                                                        *pi-nvim-config-follow*
+    Enable follow mode by default. When enabled, pi-nvim jumps to files the
+    agent reads or writes and briefly highlights the affected lines.
 
 data_dir                                                    *pi-nvim-config-data_dir*
     Override the directory used for sockets and lockfiles.
@@ -109,6 +114,9 @@ win.keys                                                    *pi-nvim-config-win-
 
 :PiNvimStatus                                               *:PiNvimStatus*
     Show the current RPC server state and whether the Pi terminal is open.
+
+:PiNvimFollow                                               *:PiNvimFollow*
+    Toggle follow mode on or off for the active Neovim session.
 
 ==============================================================================
 5. KEYMAPS                                                  *pi-nvim-keymaps*
@@ -150,6 +158,12 @@ require("pi-nvim").toggle()                              *pi-nvim.toggle()*
 
 require("pi-nvim").query(action)                          *pi-nvim.query()*
     Entry point used by the bundled Pi extension through `nvim --remote-expr`.
+
+require("pi-nvim").follow.toggle()                  *pi-nvim.follow.toggle()*
+require("pi-nvim").follow.enable()                  *pi-nvim.follow.enable()*
+require("pi-nvim").follow.disable()                *pi-nvim.follow.disable()*
+require("pi-nvim").follow.is_enabled()         *pi-nvim.follow.is_enabled()*
+    Follow mode helpers.
 
 ==============================================================================
 7. NOTES                                                        *pi-nvim-notes*
