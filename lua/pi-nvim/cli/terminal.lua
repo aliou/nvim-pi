@@ -136,6 +136,7 @@ function M.create(cmd)
   local buf = vim.api.nvim_create_buf(false, true)
   vim.bo[buf].filetype = 'pi_nvim'
   vim.bo[buf].swapfile = false
+  vim.b[buf].miniindentscope_disable = true
 
   ---@type pi.Terminal
   local terminal = { buf = buf }
