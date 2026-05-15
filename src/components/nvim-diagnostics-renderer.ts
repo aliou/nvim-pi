@@ -1,4 +1,5 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { keyHint } from "@mariozechner/pi-coding-agent";
 import { Box, Text } from "@mariozechner/pi-tui";
 
 interface DiagnosticEntry {
@@ -86,7 +87,10 @@ export function registerNvimDiagnosticsRenderer(pi: ExtensionAPI) {
             `\n\n... and ${fileCount - 1} more file${fileCount > 2 ? "s" : ""}`,
           );
         }
-        preview += theme.fg("dim", "\n\nPress Ctrl+O to expand");
+        preview += theme.fg(
+          "dim",
+          `\n\n${keyHint("app.tools.expand", "to expand")}`,
+        );
         box.addChild(new Text(preview, 0, 0));
       }
     }

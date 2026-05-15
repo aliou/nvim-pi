@@ -16,8 +16,8 @@ import type {
   Theme,
   ToolRenderResultOptions,
 } from "@mariozechner/pi-coding-agent";
-import { Text } from "@mariozechner/pi-tui";
-import { Type } from "@sinclair/typebox";
+import { Container, Text } from "@mariozechner/pi-tui";
+import { type Static, Type } from "@sinclair/typebox";
 import { queryNvim } from "../nvim";
 import {
   type CurrentFunctionResult,
@@ -37,7 +37,7 @@ import {
 // Tool parameters
 // ============================================================================
 
-const NvimContextParams = Type.Object({
+const parameters = Type.Object({
   action: StringEnum(
     ["context", "diagnostics", "current_function", "splits"] as const,
     {
@@ -45,6 +45,8 @@ const NvimContextParams = Type.Object({
     },
   ),
 });
+
+type NvimContextParams = Static<typeof parameters>;
 
 // ============================================================================
 // Tool registration
@@ -67,16 +69,16 @@ Available actions:
 
 Use this tool when you need to know what the user is currently looking at in their editor.`,
 
-    parameters: NvimContextParams,
+    parameters,
 
     promptSnippet:
       "Query the connected Neovim editor for context (splits, diagnostics, cursor position, current function)",
 
     promptGuidelines: [
-      'Prefer action="splits" when you need broad editor visibility.',
-      'Use action="context" for focused file, cursor position, and selection.',
-      'Use action="diagnostics" after edits or when investigating errors.',
-      "Do not call this tool if editor context is irrelevant to the task.",
+      'Prefer nvim_context action="splits" when you need broad editor visibility.',
+      'Use nvim_context action="context" for focused file, cursor position, and selection.',
+      'Use nvim_context action="diagnostics" after edits or when investigating errors.',
+      "Do not call nvim_context if editor context is irrelevant to the task.",
     ],
 
     async execute(_toolCallId, params, signal, _onUpdate, ctx) {
@@ -165,7 +167,7 @@ Use this tool when you need to know what the user is currently looking at in the
       }
     },
 
-    renderCall(args: { action?: string }, theme: Theme) {
+    renderCall(args: NvimContextParams, theme: Theme) {
       return new ToolCallHeader(
         {
           toolName: "Neovim Context",
@@ -180,188 +182,198 @@ Use this tool when you need to know what the user is currently looking at in the
       options: ToolRenderResultOptions,
       theme: Theme,
     ) {
+      // 1. Stable partial message
       if (options.isPartial) {
-        const text = result.content[0];
-        return new Text(text?.type === "text" ? text.text : "", 0, 0);
+        return new Text(theme.fg("muted", "Neovim Context: querying..."), 0, 0);
       }
 
       const rawDetails = result.details as
         | Partial<NvimContextDetails>
         | undefined;
 
-      // Handle empty details from thrown errors (framework passes {})
+      // 2. Handle empty details from thrown errors (framework passes {})
       if (!rawDetails?.action) {
-        const text = result.content[0];
-        const msg = text?.type === "text" ? text.text : "Unknown error";
-        return new Text(theme.fg("error", msg), 0, 0);
+        const textBlock = result.content.find((c) => c.type === "text");
+        const errorMsg =
+          (textBlock?.type === "text" && textBlock.text) || "Unknown error";
+        return new Text(theme.fg("error", errorMsg), 0, 0);
       }
+
       const details = rawDetails as NvimContextDetails;
       const { action, result: nvimResult, cwd } = details;
-      let content = "";
 
+      const container = new Container();
+
+      // 3. Error state
       if (details.error) {
-        content = theme.fg("error", details.error);
-      } else {
-        switch (action) {
-          case "context": {
-            const nvimCtx = nvimResult as NvimContext | null;
-            if (!nvimCtx?.file) {
-              content = theme.fg("dim", "No context available");
-              break;
-            }
+        container.addChild(new Text(theme.fg("error", details.error), 0, 0));
+        container.addChild(
+          new ToolFooter(theme, {
+            items: [
+              { label: "action", value: action, tone: "accent" },
+              { label: "status", value: "error", tone: "error" },
+            ],
+          }),
+        );
+        return container;
+      }
 
+      // 4. Build body fields and expanded content per action
+      const fields: Array<{
+        label: string;
+        value: string;
+        showCollapsed: boolean;
+      }> = [];
+      let expandedLines = "";
+
+      switch (action) {
+        case "context": {
+          const nvimCtx = nvimResult as NvimContext | null;
+          if (!nvimCtx?.file) {
+            fields.push({
+              label: "Context",
+              value: "No context available",
+              showCollapsed: true,
+            });
+          } else {
             const filePath = formatPath(nvimCtx.file, cwd);
             const line = nvimCtx.cursor?.line ?? 1;
             const col = nvimCtx.cursor?.col ?? 1;
-
-            content =
-              theme.fg("accent", filePath) + theme.fg("dim", `:${line}:${col}`);
-            if (nvimCtx.filetype) {
-              content += theme.fg("muted", ` (${nvimCtx.filetype})`);
-            }
+            let value = `${filePath}:${line}:${col}`;
+            if (nvimCtx.filetype) value += ` (${nvimCtx.filetype})`;
+            fields.push({ label: "File", value, showCollapsed: true });
 
             if (options.expanded && nvimCtx.selection) {
               const sel = nvimCtx.selection;
-              content += `\n${theme.fg("muted", "Selection: ")}`;
-              content += theme.fg(
-                "dim",
-                `${sel.start.line}:${sel.start.col} - ${sel.end.line}:${sel.end.col}`,
-              );
+              expandedLines = `${theme.fg("muted", "Selection:")} ${theme.fg("dim", `${sel.start.line}:${sel.start.col} - ${sel.end.line}:${sel.end.col}`)}`;
               if (sel.text) {
-                content += `\n${theme.fg("dim", sel.text)}`;
+                expandedLines += `\n${theme.fg("dim", sel.text)}`;
               }
             }
-            break;
           }
+          break;
+        }
 
-          case "diagnostics": {
-            const diags = nvimResult as DiagnosticsResult | null;
-            if (!diags || diags.length === 0) {
-              content = theme.fg("success", "No diagnostics");
-              break;
-            }
-
-            const errors = diags.filter(
-              (diag) => diag.severity === "error",
-            ).length;
+        case "diagnostics": {
+          const diags = nvimResult as DiagnosticsResult | null;
+          if (!diags || diags.length === 0) {
+            fields.push({
+              label: "Diagnostics",
+              value: "No diagnostics",
+              showCollapsed: true,
+            });
+          } else {
+            const errors = diags.filter((d) => d.severity === "error").length;
             const warnings = diags.filter(
-              (diag) => diag.severity === "warning",
+              (d) => d.severity === "warning",
             ).length;
             const others = diags.length - errors - warnings;
 
             const parts: string[] = [];
-            if (errors > 0) {
-              parts.push(
-                theme.fg("error", `${errors} error${errors > 1 ? "s" : ""}`),
+            if (errors > 0)
+              parts.push(`${errors} error${errors > 1 ? "s" : ""}`);
+            if (warnings > 0)
+              parts.push(`${warnings} warning${warnings > 1 ? "s" : ""}`);
+            if (others > 0) parts.push(`${others} other`);
+            fields.push({
+              label: "Diagnostics",
+              value: parts.join(", "),
+              showCollapsed: true,
+            });
+
+            if (options.expanded) {
+              const diagLines = diags.map((diag) => {
+                const source = diag.source
+                  ? theme.fg("dim", ` (${diag.source})`)
+                  : "";
+                return `${theme.fg("dim", `L${diag.line}:${diag.col}`)} ${theme.fg(severityColor(diag.severity), `[${diag.severity}]`)} ${theme.fg("muted", diag.message)}${source}`;
+              });
+              expandedLines = diagLines.join("\n");
+            }
+          }
+          break;
+        }
+
+        case "current_function": {
+          const fn = nvimResult as CurrentFunctionResult | null;
+          if (!fn?.name) {
+            fields.push({
+              label: "Function",
+              value: "No function at cursor",
+              showCollapsed: true,
+            });
+          } else {
+            fields.push({
+              label: "Function",
+              value: `${fn.name} (${fn.type})`,
+              showCollapsed: true,
+            });
+
+            if (options.expanded) {
+              expandedLines = theme.fg(
+                "dim",
+                `Lines ${fn.start_line}-${fn.end_line}`,
               );
             }
-            if (warnings > 0) {
-              parts.push(
-                theme.fg(
-                  "warning",
-                  `${warnings} warning${warnings > 1 ? "s" : ""}`,
-                ),
-              );
-            }
-            if (others > 0) {
-              parts.push(theme.fg("dim", `${others} other`));
-            }
-            content = parts.join(", ");
-
-            if (options.expanded) {
-              for (const diag of diags) {
-                content += `\n${theme.fg("dim", `L${diag.line}:${diag.col}`)} `;
-                content += theme.fg(
-                  severityColor(diag.severity),
-                  `[${diag.severity}]`,
-                );
-                content += ` ${theme.fg("muted", diag.message)}`;
-                if (diag.source) {
-                  content += theme.fg("dim", ` (${diag.source})`);
-                }
-              }
-            }
-            break;
           }
+          break;
+        }
 
-          case "current_function": {
-            const fn = nvimResult as CurrentFunctionResult | null;
-            if (!fn?.name) {
-              content = theme.fg("dim", "No function at cursor");
-              break;
-            }
-
-            content =
-              theme.fg("accent", fn.name) + theme.fg("muted", ` (${fn.type})`);
-            if (options.expanded) {
-              content += `\n${theme.fg("dim", `Lines ${fn.start_line}-${fn.end_line}`)}`;
-            }
-            break;
-          }
-
-          case "splits": {
-            const splits = nvimResult as SplitsResult | null;
-            if (!splits || splits.length === 0) {
-              content = theme.fg("dim", "No visible splits");
-              break;
-            }
-
-            const focusedCount = splits.filter(
-              (split) => split.is_focused,
-            ).length;
-            content = theme.fg(
-              "accent",
-              `${splits.length} split${splits.length > 1 ? "s" : ""}`,
-            );
-            if (focusedCount > 0) {
-              content += theme.fg("dim", " (1 focused)");
-            }
+        case "splits": {
+          const splits = nvimResult as SplitsResult | null;
+          if (!splits || splits.length === 0) {
+            fields.push({
+              label: "Splits",
+              value: "No visible splits",
+              showCollapsed: true,
+            });
+          } else {
+            const focusedCount = splits.filter((s) => s.is_focused).length;
+            let value = `${splits.length} split${splits.length > 1 ? "s" : ""}`;
+            if (focusedCount > 0) value += " (1 focused)";
+            fields.push({ label: "Splits", value, showCollapsed: true });
 
             if (options.expanded) {
-              for (const split of splits) {
+              const splitLines = splits.map((split) => {
                 const filePath = formatPath(split.file, cwd);
                 const marker = split.is_focused ? theme.fg("accent", " *") : "";
                 const modified = split.modified
                   ? theme.fg("warning", " [+]")
                   : "";
-                content += `\n${theme.fg("muted", filePath)}${marker}${modified}`;
-                content += theme.fg(
+                const range = theme.fg(
                   "dim",
-                  ` L${split.visible_range.first}-${split.visible_range.last}`,
+                  `L${split.visible_range.first}-${split.visible_range.last}`,
                 );
+                let line = `${theme.fg("muted", filePath)}${marker}${modified} ${range}`;
                 if (split.is_focused && split.cursor) {
-                  content += theme.fg(
+                  line += theme.fg(
                     "dim",
                     ` cursor ${split.cursor.line}:${split.cursor.col}`,
                   );
                 }
-              }
+                return line;
+              });
+              expandedLines = splitLines.join("\n");
             }
-            break;
           }
-
-          default:
-            content = theme.fg("dim", JSON.stringify(nvimResult, null, 2));
+          break;
         }
+
+        default:
+          fields.push({
+            label: "Result",
+            value: JSON.stringify(nvimResult, null, 2),
+            showCollapsed: true,
+          });
       }
 
-      return new ToolBody(
-        {
-          fields: [new Text(content, 0, 0)],
-          footer: new ToolFooter(theme, {
-            items: [
-              { label: "action", value: action, tone: "accent" },
-              {
-                label: "status",
-                value: details.error ? "error" : "ok",
-                tone: details.error ? "error" : "success",
-              },
-            ],
-          }),
-        },
-        options,
-        theme,
-      );
+      container.addChild(new ToolBody({ fields }, options, theme));
+
+      if (options.expanded && expandedLines) {
+        container.addChild(new Text(expandedLines, 0, 0));
+      }
+
+      return container;
     },
   });
 }
