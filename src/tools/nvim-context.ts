@@ -9,15 +9,16 @@
  */
 
 import { ToolBody, ToolCallHeader, ToolFooter } from "@aliou/pi-utils-ui";
-import { StringEnum } from "@mariozechner/pi-ai";
-import type {
-  AgentToolResult,
-  ExtensionAPI,
-  Theme,
-  ToolRenderResultOptions,
-} from "@mariozechner/pi-coding-agent";
-import { Container, Text } from "@mariozechner/pi-tui";
-import { type Static, Type } from "@sinclair/typebox";
+import { StringEnum } from "@earendil-works/pi-ai";
+import {
+  type AgentToolResult,
+  defineTool,
+  type ExtensionAPI,
+  type Theme,
+  type ToolRenderResultOptions,
+} from "@earendil-works/pi-coding-agent";
+import { Container, Text } from "@earendil-works/pi-tui";
+import { type Static, Type } from "typebox";
 import { queryNvim } from "../nvim";
 import {
   type CurrentFunctionResult,
@@ -56,7 +57,7 @@ export function registerNvimContextTool(
   pi: ExtensionAPI,
   state: NvimConnectionState,
 ) {
-  pi.registerTool({
+  const tool = defineTool({
     name: "nvim_context",
     label: "Neovim Context",
     description: `Query the connected Neovim editor for context information.
@@ -376,4 +377,6 @@ Use this tool when you need to know what the user is currently looking at in the
       return container;
     },
   });
+
+  pi.registerTool(tool);
 }

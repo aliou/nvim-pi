@@ -6,7 +6,7 @@ Neovim plugin with a bundled Pi extension.
 
 This package works in two modes:
 - install it as a Neovim plugin and let it launch Pi with the bundled extension
-- install it with `pi install pi:github.com/aliou/nvim-pi` and use the extension directly in terminal Pi sessions
+- install it with `pi install git:github.com/aliou/nvim-pi` and use the extension directly in terminal Pi sessions
 
 When Neovim is not running, the extension still loads cleanly and degrades gracefully.
 
@@ -75,7 +75,7 @@ The extension then injects its Neovim guidance and runtime editor context throug
 You can also install it directly in Pi:
 
 ```bash
-pi install pi:github.com/aliou/nvim-pi
+pi install git:github.com/aliou/nvim-pi
 ```
 
 This is useful if you want the extension available in terminal Pi sessions too. If no Neovim instance is running, the extension still loads and simply reports that no instance was found when needed.

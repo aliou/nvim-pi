@@ -10,7 +10,7 @@
 
 import * as path from "node:path";
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 import type { ResolvedNvimConfig } from "../config";
 import { discoverNvim, queryNvim } from "../nvim";
@@ -188,6 +188,7 @@ export function registerNvimContextHook(
 
     try {
       const raw = await queryNvim(pi.exec, state.socket, "splits", {
+        signal: ctx.signal,
         timeout: 2000,
       });
 
@@ -215,8 +216,11 @@ export function registerNvimContextHook(
     if (event.toolName === "write" || event.toolName === "edit") {
       const filePath = event.input?.path as string | undefined;
       if (filePath && !event.isError) {
+        const normalizedPath = filePath.startsWith("@")
+          ? filePath.slice(1)
+          : filePath;
         // Convert to absolute path for consistent tracking
-        const absPath = path.resolve(ctx.cwd, filePath);
+        const absPath = path.resolve(ctx.cwd, normalizedPath);
         state.modifiedFilesThisTurn.add(absPath);
 
         // Notify Neovim to reload the file
@@ -229,7 +233,7 @@ export function registerNvimContextHook(
                 type: "reload",
                 files: [absPath],
               },
-              { timeout: 2000 },
+              { signal: ctx.signal, timeout: 2000 },
             );
           } catch {
             // Ignore reload failures
@@ -255,7 +259,7 @@ export function registerNvimContextHook(
           type: "diagnostics_for_files",
           files: Array.from(state.modifiedFilesThisTurn),
         },
-        { timeout: 3000 },
+        { signal: ctx.signal, timeout: 3000 },
       );
 
       // Validate and only send if there are errors
