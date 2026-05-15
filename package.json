@@ -1,6 +1,6 @@
 {
   "name": "@aliou/nvim-pi",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Neovim plugin with bundled Pi extension for editor-aware context, reloads, and diagnostics",
   "type": "module",
   "license": "MIT",
