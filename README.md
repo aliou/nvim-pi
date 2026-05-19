@@ -1,4 +1,4 @@
-![banner](https://assets.aliou.me/pi-extensions/banners/nvim-pi.png)
+![banner](https://assets.aliou.me/github/aliou/nvim-pi/banner.png)
 
 # @aliou/nvim-pi
 
