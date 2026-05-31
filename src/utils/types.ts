@@ -43,6 +43,7 @@ export interface SplitInfo {
   visible_range: { first: number; last: number };
   cursor?: { line: number; col: number };
   is_focused: boolean;
+  last_accessed?: number;
   modified: boolean;
 }
 

@@ -21,7 +21,17 @@ local buftype_denylist = {
 ---@field visible_range pi.VisibleRange
 ---@field cursor? { line: number, col: number }
 ---@field is_focused boolean
+---@field last_accessed number
 ---@field modified boolean
+
+--- Get Neovim's native last-used timestamp for a buffer.
+---@param buf number
+---@return number
+local function get_buf_last_used(buf)
+  local infos = vim.fn.getbufinfo(buf)
+  local info = infos[1]
+  return info and info.lastused or 0
+end
 
 --- Check if a window should be included in splits
 ---@param win number
@@ -63,6 +73,7 @@ function M.execute()
         last = vim.fn.line('w$', win),
       },
       is_focused = is_focused,
+      last_accessed = get_buf_last_used(buf),
       modified = vim.bo[buf].modified,
     }
 
@@ -73,6 +84,13 @@ function M.execute()
 
     table.insert(result, info)
   end
+
+  table.sort(result, function(a, b)
+    if a.is_focused ~= b.is_focused then
+      return a.is_focused
+    end
+    return (a.last_accessed or 0) > (b.last_accessed or 0)
+  end)
 
   return result
 end
