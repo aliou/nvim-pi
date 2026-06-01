@@ -1,14 +1,15 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
   "plugins": [
     "./node_modules/@aliou/biome-plugins/plugins/no-inline-imports.grit",
     "./node_modules/@aliou/biome-plugins/plugins/no-js-import-extension.grit",
+    "./node_modules/@aliou/biome-plugins/plugins/no-ts-import-extension.grit",
     "./node_modules/@aliou/biome-plugins/plugins/no-emojis.grit"
   ],
   "vcs": {
     "enabled": true,
     "clientKind": "git",
-    "useIgnoreFile": false
+    "useIgnoreFile": true
   },
   "files": {
     "includes": ["**/*.ts", "**/*.json"],

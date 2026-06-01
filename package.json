@@ -22,6 +22,16 @@
       "./extensions/nvim-splits-autocomplete/index.ts"
     ]
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "src",
+    "extensions",
+    "README.md",
+    "!src/**/*.test.ts",
+    "!extensions/**/*.test.ts"
+  ],
   "dependencies": {
     "@aliou/pi-utils-settings": "^0.15.1",
     "@aliou/pi-utils-ui": "^0.4.1"
@@ -47,16 +57,17 @@
     }
   },
   "devDependencies": {
-    "@aliou/biome-plugins": "^0.3.2",
-    "@biomejs/biome": "^2.3.13",
+    "@aliou/biome-plugins": "^0.8.1",
+    "@biomejs/biome": "^2.4.15",
+    "@changesets/cli": "^2.27.11",
     "@earendil-works/pi-ai": "0.78.0",
     "@earendil-works/pi-coding-agent": "0.78.0",
     "@earendil-works/pi-tui": "0.78.0",
-    "@types/node": "^25.5.0",
-    "lefthook": "^1.11.12",
+    "@types/node": "^25.0.10",
+    "husky": "^9.1.7",
     "typebox": "1.1.38",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.5"
   },
   "pnpm": {
     "overrides": {
@@ -70,7 +81,10 @@
     "format": "biome check --write",
     "test": "vitest run",
     "check:lockfile": "pnpm install --frozen-lockfile --ignore-scripts",
-    "prepare": "[ -d .git ] && lefthook install || true"
+    "prepare": "[ -d .git ] && husky || true",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "pnpm changeset publish"
   },
   "packageManager": "pnpm@10.26.1"
 }
