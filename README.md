@@ -18,6 +18,7 @@ When Neovim is not running, the extension still loads cleanly and degrades grace
 |---|---|
 | `nvim_context` | Query the connected Neovim instance for editor context, splits, diagnostics, or current function |
 | `/neovim:settings` | Configure Neovim integration settings for the Pi extension |
+| `@vim:` autocomplete | Type `@vim:` in Pi's input to autocomplete file paths from visible Neovim splits |
 
 Behavior provided by hooks:
 - automatically discovers and connects to a matching Neovim instance on session start
@@ -40,15 +41,11 @@ Behavior provided by hooks:
 
 Install this repo as a Neovim plugin. The `lua/` directory is runtimepath-compatible.
 
-Example with `lazy.nvim`:
+Example with `vim.pack`:
 
 ```lua
-{
-  dir = "/absolute/path/to/nvim-pi",
-  config = function()
-    require("pi-nvim").setup()
-  end,
-}
+vim.pack.add({ name = "nvim-pi", src = "/absolute/path/to/nvim-pi" })
+require("pi-nvim").setup()
 ```
 
 Manual setup:
@@ -196,7 +193,7 @@ Neovim plugin (Lua)                            Pi extension (TypeScript)
 require("pi-nvim").setup()                    pi --extension /path/to/nvim-pi
           |                                                   |
           v                                                   v
-   rpc.start()                                     src/index.ts registers:
+   rpc.start()                                     extensions/nvim/index.ts registers:
    lockfile.create()                               - hooks (system prompt, nvim context)
           |                                      - tool (nvim_context)
           v                                      - command (/neovim:settings)
@@ -208,6 +205,14 @@ require("pi-nvim").setup()                    pi --extension /path/to/nvim-pi
           |                                          turn_end requests diagnostics
           v                                                   |
    nvim --server <socket> --remote-expr <luaeval(...)> <------+
+
+Core (src/) has zero Pi dependencies:
+  nvim.ts          lockfile discovery + RPC
+  types.ts         domain types + type guards
+  format.ts        shared formatting helpers
+
+Additional extensions:
+  nvim-splits-autocomplete/   @vim: autocomplete for open splits
 
 Additional Lua features:
   cli/terminal     open/close/toggle Pi in a split or float

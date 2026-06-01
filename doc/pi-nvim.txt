@@ -23,12 +23,8 @@ files.
 
 Install the repo as a Neovim plugin and call setup:
 >lua
-    {
-      dir = "/absolute/path/to/nvim-pi",
-      config = function()
-        require("pi-nvim").setup()
-      end,
-    }
+    vim.pack.add({ name = "nvim-pi", src = "/absolute/path/to/nvim-pi" })
+    require("pi-nvim").setup()
 <
 
 Or manually:
@@ -156,7 +152,7 @@ require("pi-nvim").query(action)                          *pi-nvim.query()*
 
 The bundled Pi extension also works when installed directly with:
 >
-    pi install pi:github.com/aliou/nvim-pi
+    pi install git:github.com/aliou/nvim-pi
 <
 
 When no Neovim instance is running, the extension still loads cleanly and
