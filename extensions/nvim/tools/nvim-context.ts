@@ -115,12 +115,13 @@ Use this tool when you need to know what the user is currently looking at in the
 
       // Use socket to query Neovim
       try {
-        const nvimResult = (await queryNvim(
+        const rawNvimResult = await queryNvim(
           pi.exec,
           result.socket,
           params.action,
           { signal },
-        )) as NvimContextDetails["result"];
+        );
+        const nvimResult = rawNvimResult as NvimContextDetails["result"];
 
         return {
           content: [

@@ -72,8 +72,9 @@ async function getInstanceInfo(
         label: `${filename}${pos}${ctx.filetype ? ` (${ctx.filetype})` : ""}`,
       };
     }
-  } catch {
-    // Query failed, fall back to basic info
+  } catch (error) {
+    // Query failed, fall back to basic info.
+    void error;
   }
 
   return {

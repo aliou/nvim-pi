@@ -101,7 +101,8 @@ export function createNvimSplitsAutocompleteProvider(
 
       try {
         const tokenLower = token.toLowerCase();
-        const splits = (await listOpenSplits(pi, cwd, options.signal))
+        const openSplits = await listOpenSplits(pi, cwd, options.signal);
+        const splits = openSplits
           .filter((split) =>
             getSplitValue(split, cwd).toLowerCase().includes(tokenLower),
           )

@@ -170,8 +170,9 @@ export function registerNvimContextHook(
         message: "Connected",
         level: "info",
       });
-    } catch {
-      // Ignore notification failures
+    } catch (error) {
+      // Ignore notification failures.
+      void error;
     }
   });
 
@@ -234,8 +235,9 @@ export function registerNvimContextHook(
               },
               { signal: ctx.signal, timeout: 2000 },
             );
-          } catch {
-            // Ignore reload failures
+          } catch (error) {
+            // Ignore reload failures.
+            void error;
           }
         }
       }
@@ -281,8 +283,9 @@ export function registerNvimContextHook(
           triggerTurn: true,
         },
       );
-    } catch {
-      // Query failed, skip diagnostics
+    } catch (error) {
+      // Query failed, skip diagnostics.
+      void error;
     }
   });
 }

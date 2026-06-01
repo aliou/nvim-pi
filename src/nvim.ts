@@ -168,8 +168,9 @@ function isValidLockfile(value: unknown): value is Lockfile {
 function removeLockfileSilently(lockfilePath: string): void {
   try {
     fs.unlinkSync(lockfilePath);
-  } catch {
-    // ignore
+  } catch (error) {
+    // Ignore best-effort stale lockfile cleanup failures.
+    void error;
   }
 }
 
