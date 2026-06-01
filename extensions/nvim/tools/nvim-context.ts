@@ -19,20 +19,18 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { Container, Text } from "@earendil-works/pi-tui";
 import { type Static, Type } from "typebox";
-import { queryNvim } from "../nvim";
-import {
-  type CurrentFunctionResult,
-  clearNvimSocket,
-  type DiagnosticsResult,
-  formatPath,
-  type NvimConnectionState,
-  type NvimContext,
-  type NvimContextDetails,
-  type NvimResult,
-  resolveNvimSocket,
-  type SplitsResult,
-  severityColor,
-} from "../utils";
+import { formatPath } from "../../../src/format";
+import { queryNvim } from "../../../src/nvim";
+import type {
+  CurrentFunctionResult,
+  DiagnosticsResult,
+  NvimContext,
+  SplitsResult,
+} from "../../../src/types";
+import type { NvimConnectionState } from "../connection";
+import { clearNvimSocket, resolveNvimSocket } from "../connection";
+import type { NvimContextDetails } from "../types";
+import { severityColor } from "../types";
 
 // ============================================================================
 // Tool parameters
@@ -122,7 +120,7 @@ Use this tool when you need to know what the user is currently looking at in the
           result.socket,
           params.action,
           { signal },
-        )) as NvimResult;
+        )) as NvimContextDetails["result"];
 
         return {
           content: [

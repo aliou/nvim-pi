@@ -5,8 +5,9 @@ import type {
   AutocompleteProvider,
   AutocompleteSuggestions,
 } from "@earendil-works/pi-tui";
+import { formatPath } from "../../src/format";
 import { discoverNvim, queryNvim } from "../../src/nvim";
-import { formatPath, isSplitsResult, type SplitInfo } from "../../src/utils";
+import { isSplitsResult, type SplitInfo } from "../../src/types";
 import {
   createPrefixCompletionItem,
   extractPrefixCandidate,

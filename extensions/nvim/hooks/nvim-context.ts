@@ -11,18 +11,16 @@
 import * as path from "node:path";
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-
-import type { ResolvedNvimConfig } from "../config";
-import { discoverNvim, queryNvim } from "../nvim";
+import { formatPath } from "../../../src/format";
+import { discoverNvim, queryNvim } from "../../../src/nvim";
 import {
-  clearNvimSocket,
-  formatPath,
   isDiagnosticsForFilesResult,
   isSplitsResult,
-  type NvimConnectionState,
-  resolveNvimSocket,
   type SplitInfo,
-} from "../utils";
+} from "../../../src/types";
+import type { ResolvedNvimConfig } from "../config";
+import type { NvimConnectionState } from "../connection";
+import { clearNvimSocket, resolveNvimSocket } from "../connection";
 
 // ============================================================================
 // Helpers
@@ -86,7 +84,7 @@ function formatDiagnosticsMessage(
 // Hook Registration
 // ============================================================================
 
-export type { NvimConnectionState } from "../utils";
+export type { NvimConnectionState } from "../connection";
 
 export function registerNvimContextHook(
   pi: ExtensionAPI,

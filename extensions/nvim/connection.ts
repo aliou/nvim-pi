@@ -14,7 +14,7 @@ import {
   discoverNvim,
   type ExecFn,
   queryNvim,
-} from "../nvim";
+} from "../../src/nvim";
 
 // ============================================================================
 // Types

@@ -14,9 +14,9 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { registerCommands } from "./commands";
 import { registerRenderers } from "./components";
 import { configLoader } from "./config";
+import type { NvimConnectionState } from "./connection";
 import { setupNvimHooks } from "./hooks";
 import { setupNvimTools } from "./tools";
-import type { NvimConnectionState } from "./utils";
 
 export default async function nvimContextExtension(pi: ExtensionAPI) {
   await configLoader.load();

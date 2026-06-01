@@ -1,8 +1,8 @@
 /**
- * Shared Neovim RPC result types and helpers.
+ * Neovim RPC result types and type guards.
+ *
+ * Core domain types with zero Pi dependencies. Shared by all extensions.
  */
-
-import * as path from "node:path";
 
 // ============================================================================
 // Neovim RPC result types
@@ -59,30 +59,6 @@ export interface FileDiagnostic {
 export type DiagnosticsForFilesResult = Record<string, FileDiagnostic[]>;
 
 // ============================================================================
-// Tool details types
-// ============================================================================
-
-export type NvimContextAction =
-  | "context"
-  | "diagnostics"
-  | "current_function"
-  | "splits";
-
-export type NvimResult =
-  | NvimContext
-  | DiagnosticsResult
-  | CurrentFunctionResult
-  | SplitsResult
-  | null;
-
-export interface NvimContextDetails {
-  action: NvimContextAction;
-  result: NvimResult;
-  cwd: string;
-  error?: string;
-}
-
-// ============================================================================
 // RPC result type guards
 // ============================================================================
 
@@ -122,40 +98,4 @@ export function isDiagnosticsForFilesResult(
           typeof entry.message === "string",
       ),
   );
-}
-
-// ============================================================================
-// Shared helpers
-// ============================================================================
-
-/**
- * Format a file path: relative if inside cwd, absolute otherwise.
- */
-export function formatPath(filePath: string, cwd: string): string {
-  if (!filePath) return "<no file>";
-
-  const normalized = path.resolve(filePath);
-  const normalizedCwd = path.resolve(cwd);
-
-  if (normalized.startsWith(normalizedCwd + path.sep)) {
-    return path.relative(cwd, normalized);
-  }
-
-  return normalized;
-}
-
-/**
- * Map diagnostic severity to a theme color name.
- */
-export function severityColor(
-  severity: DiagnosticItem["severity"],
-): "error" | "warning" | "dim" {
-  switch (severity) {
-    case "error":
-      return "error";
-    case "warning":
-      return "warning";
-    default:
-      return "dim";
-  }
 }
