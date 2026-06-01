@@ -48,7 +48,7 @@
       "description": "Settings for the persistent undo extension.",
       "properties": {
         "enabled": {
-          "description": "Enable edit/write tool wrappers that update Neovim persistent undo files.",
+          "description": "Enable hooks that update Neovim persistent undo files after edit/write tools.",
           "type": "boolean"
         }
       },

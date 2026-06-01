@@ -8,7 +8,8 @@ CONTENTS                                                    *pi-nvim-contents*
     4. Commands .............................. |pi-nvim-commands|
     5. Keymaps ............................... |pi-nvim-keymaps|
     6. API ................................... |pi-nvim-api|
-    7. Notes ................................. |pi-nvim-notes|
+    7. Pi extension features ................. |pi-nvim-extension|
+    8. Notes ................................. |pi-nvim-notes|
 
 ==============================================================================
 1. INTRODUCTION                                         *pi-nvim-introduction*
@@ -23,11 +24,23 @@ files.
 
 Install the repo as a Neovim plugin and call setup:
 >lua
-    vim.pack.add({ name = "nvim-pi", src = "/absolute/path/to/nvim-pi" })
+    vim.pack.add({ { name = "nvim-pi", src = "https://github.com/aliou/nvim-pi" } })
     require("pi-nvim").setup()
 <
 
-Or manually:
+To use an existing Pi git install as a Neovim plugin:
+>
+    pi install git:github.com/aliou/nvim-pi
+<
+>lua
+    vim.opt.runtimepath:append(vim.fn.expand("~/.pi/agent/git/github.com/aliou/nvim-pi"))
+    require("pi-nvim").setup()
+<
+
+If installed into project settings with `pi install -l`, use that project's
+`.pi/git/github.com/aliou/nvim-pi` path instead.
+
+For a local checkout during development:
 >lua
     vim.opt.runtimepath:append("/absolute/path/to/nvim-pi")
     require("pi-nvim").setup()
@@ -100,6 +113,11 @@ win.focus_source_on_stopinsert         *pi-nvim-config-win-focus_source_on_stopi
 win.keys                                                    *pi-nvim-config-win-keys*
     Window-local key definitions for close, stopinsert, suspend, and picker.
 
+Pi extension settings:
+    /neovim:settings exposes connection status messages, @vim: autocomplete,
+    and persistent undo integration toggles. The @vim: autocomplete provider is
+    enabled by default. Persistent undo updates are disabled by default.
+
 ==============================================================================
 4. COMMANDS                                                *pi-nvim-commands*
 
@@ -148,7 +166,29 @@ require("pi-nvim").query(action)                          *pi-nvim.query()*
     Entry point used by the bundled Pi extension through `nvim --remote-expr`.
 
 ==============================================================================
-7. NOTES                                                        *pi-nvim-notes*
+7. PI EXTENSION FEATURES                                  *pi-nvim-extension*
+
+nvim_context
+    Pi tool for querying focused editor context, visible splits, diagnostics,
+    or the current function.
+
+/neovim:settings
+    Pi command for configuring connection status messages, @vim: autocomplete,
+    and persistent undo integration.
+
+/vim:undotree [file]
+    Pi command for opening a Neovim persistent undo tree overlay. When no file
+    is provided, Pi shows a picker if UI is available.
+
+@vim:
+    Pi autocomplete prefix for visible Neovim split file paths.
+
+Persistent undo integration
+    When enabled, hooks track successful Pi edit/write tool calls and update the
+    matching Neovim persistent undo files.
+
+==============================================================================
+8. NOTES                                                        *pi-nvim-notes*
 
 The bundled Pi extension also works when installed directly with:
 >

@@ -18,10 +18,11 @@ When Neovim is not running, the extension still loads cleanly and degrades grace
 |---|---|
 | `nvim_context` | Query the connected Neovim instance for editor context, splits, diagnostics, or current function |
 | `/neovim:settings` | Configure Neovim integration settings for the Pi extension |
+| `/vim:undotree [file]` | Inspect a Neovim persistent undo tree for a file |
 | `@vim:` autocomplete | Type `@vim:` in Pi's input to autocomplete file paths from visible Neovim splits |
 
-Optional disabled-by-default extension:
-- `extensions/undo` replaces Pi's native `edit` and `write` tools with wrappers that update matching Neovim persistent undo files after external writes.
+Additional disabled-by-default behavior:
+- `extensions/undo` can update matching Neovim persistent undo files after successful Pi `edit` and `write` tool calls.
 
 Behavior provided by hooks:
 - automatically discovers and connects to a matching Neovim instance on session start
@@ -47,11 +48,24 @@ Install this repo as a Neovim plugin. The `lua/` directory is runtimepath-compat
 Example with `vim.pack`:
 
 ```lua
-vim.pack.add({ name = "nvim-pi", src = "/absolute/path/to/nvim-pi" })
+vim.pack.add({ { name = "nvim-pi", src = "https://github.com/aliou/nvim-pi" } })
 require("pi-nvim").setup()
 ```
 
-Manual setup:
+Use an existing Pi git install as a Neovim plugin:
+
+```bash
+pi install git:github.com/aliou/nvim-pi
+```
+
+```lua
+vim.opt.runtimepath:append(vim.fn.expand("~/.pi/agent/git/github.com/aliou/nvim-pi"))
+require("pi-nvim").setup()
+```
+
+If you installed it into project settings with `pi install -l`, use that project's `.pi/git/github.com/aliou/nvim-pi` path instead.
+
+Local checkout setup for development:
 
 ```lua
 vim.opt.runtimepath:append(vim.fn.expand("/absolute/path/to/nvim-pi"))
@@ -89,6 +103,10 @@ This is useful if you want the extension available in terminal Pi sessions too. 
 | Setting | Default | Description |
 |---|---|---|
 | `Connection status messages` | `on` | Show `nvim: connected` / `no instance found` style messages in the Pi session |
+| `@vim: autocomplete` | `enabled` | Enable autocomplete for open Neovim splits |
+| `Persistent undo tools` | `disabled` | Update Neovim persistent undo files after successful Pi `edit` and `write` tool calls |
+
+Feature toggles are shown as unavailable if Pi did not load that extension entry point.
 
 ### Neovim plugin config
 
@@ -159,6 +177,10 @@ Commands and API:
 - `require("pi-nvim").status()` - get the current RPC state
 - `require("pi-nvim").is_open()` - check if the Pi terminal is open
 
+Pi extension commands:
+- `/neovim:settings` - configure connection messages, `@vim:` autocomplete, and persistent undo integration
+- `/vim:undotree [file]` - open a persistent undo tree overlay for a file; when no file is provided, Pi shows a picker if UI is available
+
 ## Troubleshooting
 
 ### Pi cannot find Neovim
@@ -216,7 +238,7 @@ Core (src/) has zero Pi dependencies:
 
 Additional extensions:
   nvim-splits-autocomplete/   @vim: autocomplete for open splits
-  undo/                       disabled-by-default edit/write wrappers for Neovim persistent undo
+  undo/                       /vim:undotree plus disabled-by-default persistent undo update hooks
 
 Additional Lua features:
   cli/terminal     open/close/toggle Pi in a split or float

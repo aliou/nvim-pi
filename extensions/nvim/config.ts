@@ -37,7 +37,7 @@ export interface CompletionConfig {
 
 /** Settings for the persistent undo extension. */
 export interface UndoConfig {
-  /** Enable edit/write tool wrappers that update Neovim persistent undo files. */
+  /** Enable hooks that update Neovim persistent undo files after edit/write tools. */
   enabled?: boolean;
 }
 

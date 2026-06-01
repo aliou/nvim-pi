@@ -29,6 +29,8 @@
   "files": [
     "src",
     "extensions",
+    "lua",
+    "doc",
     "schema.json",
     "README.md",
     "!src/**/*.test.ts",

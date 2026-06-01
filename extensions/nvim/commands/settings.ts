@@ -92,7 +92,7 @@ export function registerNeovimSettings(
             featureRow(
               "undo",
               "Persistent undo tools",
-              "Toggle edit/write tool wrappers that update Neovim persistent undo files",
+              "Toggle hooks that update Neovim persistent undo files after edit/write tool calls",
               undoEnabled,
               loaded.has("undo"),
             ),

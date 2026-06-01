@@ -49,8 +49,11 @@ extensions/
     index.ts                # Extension entry
     provider.ts             # Autocomplete logic
     completion.ts           # Completion helpers
-  undo/                     # Disabled-by-default edit/write wrappers that update Neovim persistent undo
+  undo/                     # Persistent undo command + disabled-by-default update hooks
     index.ts                # Extension entry
+    commands/               # /vim:undotree command
+    hooks/                  # edit/write tracking hooks that update Neovim persistent undo files
+    components/             # Undo tree overlay and picker UI
 
 lua/
   pi-nvim/                 # Neovim plugin
