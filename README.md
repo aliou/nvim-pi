@@ -20,6 +20,9 @@ When Neovim is not running, the extension still loads cleanly and degrades grace
 | `/neovim:settings` | Configure Neovim integration settings for the Pi extension |
 | `@vim:` autocomplete | Type `@vim:` in Pi's input to autocomplete file paths from visible Neovim splits |
 
+Optional disabled-by-default extension:
+- `extensions/undo` replaces Pi's native `edit` and `write` tools with wrappers that update matching Neovim persistent undo files after external writes.
+
 Behavior provided by hooks:
 - automatically discovers and connects to a matching Neovim instance on session start
 - injects visible split context into the system prompt on each turn
@@ -213,6 +216,7 @@ Core (src/) has zero Pi dependencies:
 
 Additional extensions:
   nvim-splits-autocomplete/   @vim: autocomplete for open splits
+  undo/                       disabled-by-default edit/write wrappers for Neovim persistent undo
 
 Additional Lua features:
   cli/terminal     open/close/toggle Pi in a split or float

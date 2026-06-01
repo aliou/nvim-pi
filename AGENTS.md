@@ -33,6 +33,7 @@ src/                        # Core — zero Pi dependencies
   nvim.test.ts              # Tests for nvim.ts
   types.ts                  # Domain types + type guards
   format.ts                 # Shared formatting helpers (formatPath)
+  undo/                    # Neovim persistent undo parsing + update helpers
 
 extensions/
   nvim/                     # Main Pi extension
@@ -48,6 +49,8 @@ extensions/
     index.ts                # Extension entry
     provider.ts             # Autocomplete logic
     completion.ts           # Completion helpers
+  undo/                     # Disabled-by-default edit/write wrappers that update Neovim persistent undo
+    index.ts                # Extension entry
 
 lua/
   pi-nvim/                 # Neovim plugin

@@ -19,7 +19,8 @@
   "pi": {
     "extensions": [
       "./extensions/nvim/index.ts",
-      "./extensions/nvim-splits-autocomplete/index.ts"
+      "./extensions/nvim-splits-autocomplete/index.ts",
+      "-./extensions/undo/index.ts"
     ]
   },
   "publishConfig": {
