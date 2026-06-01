@@ -8,7 +8,7 @@ import {
   type NvimConfigUpdatedPayload,
 } from "../nvim/config";
 import { registerUndoTreeCommand } from "./commands";
-import { registerUndoTools } from "./tools";
+import { registerHooks } from "./hooks";
 
 export default async function undoExtension(pi: ExtensionAPI): Promise<void> {
   await configLoader.load();
@@ -22,7 +22,7 @@ export default async function undoExtension(pi: ExtensionAPI): Promise<void> {
 
   function syncRegistration(): void {
     if (!enabled || registered) return;
-    registerUndoTools(pi, () => enabled);
+    registerHooks(pi, () => enabled);
     registered = true;
   }
 
