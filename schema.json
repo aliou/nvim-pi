@@ -1,0 +1,58 @@
+{
+  "$ref": "#/definitions/NvimConfig",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "CompletionConfig": {
+      "additionalProperties": false,
+      "description": "Settings for the Vim-prefix autocomplete extension.",
+      "properties": {
+        "enabled": {
+          "description": "Enable autocomplete for open Neovim splits.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "NvimConfig": {
+      "additionalProperties": false,
+      "description": "User-facing nvim-pi configuration.",
+      "properties": {
+        "completion": {
+          "$ref": "#/definitions/CompletionConfig",
+          "description": "Vim-prefix autocomplete extension settings."
+        },
+        "nvim": {
+          "$ref": "#/definitions/NvimCoreConfig",
+          "description": "Main Neovim integration settings."
+        },
+        "undo": {
+          "$ref": "#/definitions/UndoConfig",
+          "description": "Persistent undo extension settings."
+        }
+      },
+      "type": "object"
+    },
+    "NvimCoreConfig": {
+      "additionalProperties": false,
+      "description": "Settings for the main Neovim integration extension.",
+      "properties": {
+        "showConnectionMessages": {
+          "description": "Show Neovim connection status messages in chat.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "UndoConfig": {
+      "additionalProperties": false,
+      "description": "Settings for the persistent undo extension.",
+      "properties": {
+        "enabled": {
+          "description": "Enable edit/write tool wrappers that update Neovim persistent undo files.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    }
+  }
+}

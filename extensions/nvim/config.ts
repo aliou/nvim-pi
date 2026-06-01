@@ -1,4 +1,8 @@
-import { ConfigLoader, type Migration } from "@aliou/pi-utils-settings";
+import {
+  buildSchemaUrl,
+  ConfigLoader,
+  type Migration,
+} from "@aliou/pi-utils-settings";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 export type NvimFeatureId = "completion" | "undo";
@@ -19,21 +23,31 @@ export interface NvimConfigUpdatedPayload {
   config: ResolvedNvimConfig;
 }
 
+/** Settings for the main Neovim integration extension. */
 export interface NvimCoreConfig {
+  /** Show Neovim connection status messages in chat. */
   showConnectionMessages?: boolean;
 }
 
+/** Settings for the Vim-prefix autocomplete extension. */
 export interface CompletionConfig {
+  /** Enable autocomplete for open Neovim splits. */
   enabled?: boolean;
 }
 
+/** Settings for the persistent undo extension. */
 export interface UndoConfig {
+  /** Enable edit/write tool wrappers that update Neovim persistent undo files. */
   enabled?: boolean;
 }
 
+/** User-facing nvim-pi configuration. */
 export interface NvimConfig {
+  /** Main Neovim integration settings. */
   nvim?: NvimCoreConfig;
+  /** Vim-prefix autocomplete extension settings. */
   completion?: CompletionConfig;
+  /** Persistent undo extension settings. */
   undo?: UndoConfig;
 }
 
@@ -60,6 +74,11 @@ const DEFAULT_CONFIG: ResolvedNvimConfig = {
     enabled: false,
   },
 };
+
+const schemaUrl = buildSchemaUrl("aliou/nvim-pi", "main", {
+  template:
+    "https://raw.githubusercontent.com/{packageName}/{version}/{schemaPath}",
+});
 
 const migrations: Migration<NvimConfig>[] = [
   {
@@ -91,6 +110,7 @@ export const configLoader = new ConfigLoader<NvimConfig, ResolvedNvimConfig>(
   {
     scopes: ["global"],
     migrations,
+    schemaUrl,
   },
 );
 

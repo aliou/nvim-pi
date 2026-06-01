@@ -29,12 +29,13 @@
   "files": [
     "src",
     "extensions",
+    "schema.json",
     "README.md",
     "!src/**/*.test.ts",
     "!extensions/**/*.test.ts"
   ],
   "dependencies": {
-    "@aliou/pi-utils-settings": "^0.15.1",
+    "@aliou/pi-utils-settings": "^0.16.0",
     "@aliou/pi-utils-ui": "^0.4.1"
   },
   "peerDependencies": {
@@ -66,6 +67,7 @@
     "@earendil-works/pi-tui": "0.78.0",
     "@types/node": "^25.0.10",
     "husky": "^9.1.7",
+    "ts-json-schema-generator": "^2.9.0",
     "typebox": "1.1.38",
     "typescript": "^5.9.3",
     "vitest": "^4.1.5"
@@ -80,6 +82,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check",
     "format": "biome check --write",
+    "gen:schema": "ts-json-schema-generator --path extensions/nvim/config.ts --type NvimConfig --no-type-check -o schema.json",
+    "check:schema": "ts-json-schema-generator --path extensions/nvim/config.ts --type NvimConfig --no-type-check -o /tmp/nvim-pi-schema-check.json && diff -q schema.json /tmp/nvim-pi-schema-check.json",
     "test": "vitest run",
     "check:lockfile": "pnpm install --frozen-lockfile --ignore-scripts",
     "prepare": "[ -d .git ] && husky || true",
