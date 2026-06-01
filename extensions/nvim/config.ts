@@ -1,7 +1,7 @@
-import { ConfigLoader } from "@aliou/pi-utils-settings";
+import { ConfigLoader, type Migration } from "@aliou/pi-utils-settings";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-export type NvimFeatureId = "splitsAutocomplete" | "undoTools";
+export type NvimFeatureId = "completion" | "undo";
 
 export const NVIM_EXTENSIONS_REQUEST_EVENT =
   "neovim:extensions:request" as const;
@@ -19,29 +19,78 @@ export interface NvimConfigUpdatedPayload {
   config: ResolvedNvimConfig;
 }
 
-export interface NvimConfig {
+export interface NvimCoreConfig {
   showConnectionMessages?: boolean;
-  splitsAutocomplete?: boolean;
-  undoTools?: boolean;
+}
+
+export interface CompletionConfig {
+  enabled?: boolean;
+}
+
+export interface UndoConfig {
+  enabled?: boolean;
+}
+
+export interface NvimConfig {
+  nvim?: NvimCoreConfig;
+  completion?: CompletionConfig;
+  undo?: UndoConfig;
 }
 
 export interface ResolvedNvimConfig {
-  showConnectionMessages: boolean;
-  splitsAutocomplete: boolean;
-  undoTools: boolean;
+  nvim: {
+    showConnectionMessages: boolean;
+  };
+  completion: {
+    enabled: boolean;
+  };
+  undo: {
+    enabled: boolean;
+  };
 }
 
 const DEFAULT_CONFIG: ResolvedNvimConfig = {
-  showConnectionMessages: true,
-  splitsAutocomplete: true,
-  undoTools: false,
+  nvim: {
+    showConnectionMessages: true,
+  },
+  completion: {
+    enabled: true,
+  },
+  undo: {
+    enabled: false,
+  },
 };
+
+const migrations: Migration<NvimConfig>[] = [
+  {
+    name: "nest-nvim-settings",
+    shouldRun: (config) =>
+      "showConnectionMessages" in
+      (config as NvimConfig & { showConnectionMessages?: boolean }),
+    run: (config) => {
+      const legacy = config as NvimConfig & {
+        showConnectionMessages?: boolean;
+      };
+      const migrated: NvimConfig = {
+        ...config,
+        nvim: {
+          ...config.nvim,
+          showConnectionMessages: legacy.showConnectionMessages,
+        },
+      };
+      delete (migrated as NvimConfig & { showConnectionMessages?: boolean })
+        .showConnectionMessages;
+      return migrated;
+    },
+  },
+];
 
 export const configLoader = new ConfigLoader<NvimConfig, ResolvedNvimConfig>(
   "neovim",
   DEFAULT_CONFIG,
   {
     scopes: ["global"],
+    migrations,
   },
 );
 

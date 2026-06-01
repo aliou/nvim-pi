@@ -59,10 +59,11 @@ export function registerNeovimSettings(
     ): SettingsSection[] => {
       const loaded = getLoadedFeatures();
       const showMessages =
-        tabConfig?.showConnectionMessages ?? resolved.showConnectionMessages;
-      const splitsAutocomplete =
-        tabConfig?.splitsAutocomplete ?? resolved.splitsAutocomplete;
-      const undoTools = tabConfig?.undoTools ?? resolved.undoTools;
+        tabConfig?.nvim?.showConnectionMessages ??
+        resolved.nvim.showConnectionMessages;
+      const completionEnabled =
+        tabConfig?.completion?.enabled ?? resolved.completion.enabled;
+      const undoEnabled = tabConfig?.undo?.enabled ?? resolved.undo.enabled;
 
       return [
         {
@@ -82,18 +83,18 @@ export function registerNeovimSettings(
           label: "Extensions",
           items: [
             featureRow(
-              "splitsAutocomplete",
+              "completion",
               "@vim: autocomplete",
               "Toggle the @vim: autocomplete provider for open Neovim splits",
-              splitsAutocomplete,
-              loaded.has("splitsAutocomplete"),
+              completionEnabled,
+              loaded.has("completion"),
             ),
             featureRow(
-              "undoTools",
+              "undo",
               "Persistent undo tools",
               "Toggle edit/write tool wrappers that update Neovim persistent undo files",
-              undoTools,
-              loaded.has("undoTools"),
+              undoEnabled,
+              loaded.has("undo"),
             ),
           ],
         },
@@ -101,7 +102,7 @@ export function registerNeovimSettings(
     },
     onSettingChange: (id, newValue, config): NvimConfig | null => {
       if (
-        (id === "splitsAutocomplete" || id === "undoTools") &&
+        (id === "completion" || id === "undo") &&
         !getLoadedFeatures().has(id)
       ) {
         return null;
@@ -111,13 +112,22 @@ export function registerNeovimSettings(
 
       switch (id) {
         case "showConnectionMessages":
-          updated.showConnectionMessages = newValue === "on";
+          updated.nvim = {
+            ...updated.nvim,
+            showConnectionMessages: newValue === "on",
+          };
           return updated;
-        case "splitsAutocomplete":
-          updated.splitsAutocomplete = newValue === "enabled";
+        case "completion":
+          updated.completion = {
+            ...updated.completion,
+            enabled: newValue === "enabled",
+          };
           return updated;
-        case "undoTools":
-          updated.undoTools = newValue === "enabled";
+        case "undo":
+          updated.undo = {
+            ...updated.undo,
+            enabled: newValue === "enabled",
+          };
           return updated;
         default:
           return null;

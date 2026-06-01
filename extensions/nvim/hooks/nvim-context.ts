@@ -91,7 +91,8 @@ export function registerNvimContextHook(
   state: NvimConnectionState,
   getConfig: () => ResolvedNvimConfig,
 ) {
-  const shouldShowConnectionMessages = () => getConfig().showConnectionMessages;
+  const shouldShowConnectionMessages = () =>
+    getConfig().nvim.showConnectionMessages;
 
   // -------------------------------------------------------------------------
   // Session start: auto-connect to Neovim

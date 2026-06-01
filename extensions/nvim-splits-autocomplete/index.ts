@@ -17,11 +17,11 @@ import { createNvimSplitsAutocompleteProvider } from "./provider";
 export default async function nvimSplitsAutocomplete(pi: ExtensionAPI) {
   await configLoader.load();
 
-  let enabled = configLoader.getConfig().splitsAutocomplete;
+  let enabled = configLoader.getConfig().completion.enabled;
 
   function registerFeature(): void {
     pi.events.emit(NVIM_EXTENSIONS_REGISTER_EVENT, {
-      feature: "splitsAutocomplete",
+      feature: "completion",
     });
   }
 
@@ -30,7 +30,7 @@ export default async function nvimSplitsAutocomplete(pi: ExtensionAPI) {
   pi.events.on(NVIM_EXTENSIONS_REQUEST_EVENT, registerFeature);
 
   pi.events.on(NVIM_CONFIG_UPDATED_EVENT, (data: unknown) => {
-    enabled = (data as NvimConfigUpdatedPayload).config.splitsAutocomplete;
+    enabled = (data as NvimConfigUpdatedPayload).config.completion.enabled;
   });
 
   pi.on("session_start", async (_event, ctx) => {
