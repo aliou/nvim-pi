@@ -13,7 +13,14 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 import { registerCommands } from "./commands";
 import { registerRenderers } from "./components";
-import { configLoader } from "./config";
+import {
+  configLoader,
+  emitNvimConfigUpdated,
+  NVIM_EXTENSIONS_REGISTER_EVENT,
+  NVIM_EXTENSIONS_REQUEST_EVENT,
+  type NvimExtensionsRegisterPayload,
+  type NvimFeatureId,
+} from "./config";
 import type { NvimConnectionState } from "./connection";
 import { setupNvimHooks } from "./hooks";
 import { setupNvimTools } from "./tools";
@@ -27,8 +34,21 @@ export default async function nvimContextExtension(pi: ExtensionAPI) {
     modifiedFilesThisTurn: new Set(),
   };
 
+  const loadedFeatures = new Set<NvimFeatureId>();
+
+  pi.events.on(NVIM_EXTENSIONS_REGISTER_EVENT, (data: unknown) => {
+    const { feature } = data as NvimExtensionsRegisterPayload;
+    loadedFeatures.add(feature);
+  });
+
+  pi.on("session_start", async () => {
+    loadedFeatures.clear();
+    pi.events.emit(NVIM_EXTENSIONS_REQUEST_EVENT, undefined);
+    emitNvimConfigUpdated(pi);
+  });
+
   registerRenderers(pi);
-  registerCommands(pi);
+  registerCommands(pi, { getLoadedFeatures: () => loadedFeatures });
   setupNvimTools(pi, state);
   setupNvimHooks(pi, state, () => configLoader.getConfig());
 }

@@ -10,8 +10,15 @@ import {
   createWriteTool,
 } from "@earendil-works/pi-coding-agent";
 import { updateUndofileForExternalWrite } from "../../src/undo";
+import {
+  configLoader,
+  NVIM_CONFIG_UPDATED_EVENT,
+  NVIM_EXTENSIONS_REGISTER_EVENT,
+  NVIM_EXTENSIONS_REQUEST_EVENT,
+  type NvimConfigUpdatedPayload,
+} from "../nvim/config";
 
-export default function undoExtension(pi: ExtensionAPI): void {
+function registerUndoTools(pi: ExtensionAPI, isEnabled: () => boolean): void {
   const cwd = process.cwd();
   const nativeEdit = createEditTool(cwd);
 
@@ -33,7 +40,7 @@ export default function undoExtension(pi: ExtensionAPI): void {
         onUpdate,
       );
 
-      if (oldContent !== undefined) {
+      if (isEnabled() && oldContent !== undefined) {
         const newContent = await readFile(absolutePath, "utf8");
         await updateUndofileForExternalWrite({
           filePath: absolutePath,
@@ -62,7 +69,7 @@ export default function undoExtension(pi: ExtensionAPI): void {
         onUpdate,
       );
 
-      if (oldContent !== undefined) {
+      if (isEnabled() && oldContent !== undefined) {
         await updateUndofileForExternalWrite({
           filePath: absolutePath,
           oldContent,
@@ -72,5 +79,32 @@ export default function undoExtension(pi: ExtensionAPI): void {
 
       return result;
     },
+  });
+}
+
+export default async function undoExtension(pi: ExtensionAPI): Promise<void> {
+  await configLoader.load();
+
+  let enabled = configLoader.getConfig().undoTools;
+  let registered = false;
+
+  function registerFeature(): void {
+    pi.events.emit(NVIM_EXTENSIONS_REGISTER_EVENT, { feature: "undoTools" });
+  }
+
+  function syncRegistration(): void {
+    if (!enabled || registered) return;
+    registerUndoTools(pi, () => enabled);
+    registered = true;
+  }
+
+  registerFeature();
+  syncRegistration();
+
+  pi.events.on(NVIM_EXTENSIONS_REQUEST_EVENT, registerFeature);
+
+  pi.events.on(NVIM_CONFIG_UPDATED_EVENT, (data: unknown) => {
+    enabled = (data as NvimConfigUpdatedPayload).config.undoTools;
+    syncRegistration();
   });
 }
