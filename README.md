@@ -82,7 +82,7 @@ When you open Pi through `pi-nvim`, the plugin launches:
 pi --extension /absolute/path/to/nvim-pi
 ```
 
-The extension then injects its Neovim guidance and runtime editor context through hooks.
+The extension then injects its Neovim guidance and runtime editor context through hooks. By default (`load_extension = "auto"`), the plugin checks whether nvim-pi is installed globally in Pi and skips `--extension` if so — this avoids loading the extension twice when you already installed it with `pi install`.
 
 ### As a Pi extension
 
@@ -120,6 +120,7 @@ require("pi-nvim").setup({
   provider = nil,
   model = nil,
   thinking = nil,
+  load_extension = "auto", -- "auto": skip --extension if installed globally; true: always pass; false: never pass
   extra_args = nil,
 
   -- Window configuration

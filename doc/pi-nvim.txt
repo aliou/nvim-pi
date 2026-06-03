@@ -66,6 +66,7 @@ When opening Pi from Neovim, the plugin launches:
       provider = nil,
       model = nil,
       thinking = nil,
+      load_extension = "auto",
       extra_args = nil,
       win = {
         layout = "auto",
@@ -96,6 +97,14 @@ model                                                        *pi-nvim-config-mod
 thinking                                                  *pi-nvim-config-thinking*
 extra_args                                                *pi-nvim-config-extra_args*
     Passed through to the Pi CLI when pi-nvim opens Pi.
+
+load_extension                                      *pi-nvim-config-load_extension*
+    Control whether the bundled extension is passed via `--extension` when pi-nvim
+    opens Pi. Accepted values:
+      - "auto" (default): skip `--extension` if nvim-pi is installed globally in Pi
+        (detected via `pi list`). Falls back to passing `--extension` if not found.
+      - true: always pass `--extension` with the plugin root path.
+      - false: never pass `--extension`, rely on a global Pi install.
 
 win.layout                                                *pi-nvim-config-win-layout*
     One of: "auto", "right", "left", "top", "bottom", "float".

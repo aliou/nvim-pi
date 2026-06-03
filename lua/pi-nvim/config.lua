@@ -20,12 +20,14 @@ local M = {}
 ---@field provider? string Pi --provider flag
 ---@field model? string Pi --model flag
 ---@field thinking? string Pi --thinking flag (off|minimal|low|medium|high|xhigh)
+---@field load_extension? boolean|"auto" Pass bundled extension via --extension (default: "auto", skips if installed globally)
 ---@field extra_args? string[] Additional CLI arguments
 ---@field win? pi.WinConfig Window configuration
 
 ---@type pi.Config
 M.defaults = {
   auto_start = true,
+  load_extension = 'auto',
   win = {
     layout = 'auto',
     width_threshold = 150,

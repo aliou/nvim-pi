@@ -14,17 +14,43 @@ local function get_plugin_root()
   return vim.fn.fnamemodify(src, ':h:h:h:h')
 end
 
+--- Check if nvim-pi is installed as a Pi package
+--- Parses `pi list` for npm or git installs of nvim-pi
+---@return boolean|nil true if found, false if not, nil if check failed
+local function is_installed_globally()
+  local ok, out = pcall(vim.fn.system, { 'pi', 'list' })
+  if not ok or vim.v.shell_error ~= 0 then
+    return nil
+  end
+  -- Match any pi list entry that resolves to nvim-pi (npm or git install)
+  return out:match('npm:@aliou/nvim%-pi%s*$') ~= nil
+      or out:match('git:github%.com/aliou/nvim%-pi%s*$') ~= nil
+end
+
 --- Build Pi command with extension
 ---@return string[]
 function M.build_cmd()
   local cfg = config.get()
-  local root = get_plugin_root()
 
   local cmd = { 'pi' }
 
-  -- Load the nvim integration extension
-  table.insert(cmd, '--extension')
-  table.insert(cmd, root)
+  -- Determine whether to pass --extension.
+  -- load_extension: true  -> always pass --extension (default)
+  -- load_extension: false -> never pass --extension
+  -- load_extension: "auto" -> skip --extension if Pi has nvim-pi installed globally
+  local load = cfg.load_extension
+  if load == nil or load == true then
+    local root = get_plugin_root()
+    table.insert(cmd, '--extension')
+    table.insert(cmd, root)
+  elseif load == 'auto' then
+    local installed = is_installed_globally()
+    if not installed then
+      local root = get_plugin_root()
+      table.insert(cmd, '--extension')
+      table.insert(cmd, root)
+    end
+  end
 
   -- Optional CLI flags from config
   if cfg.models then
