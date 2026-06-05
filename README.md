@@ -238,7 +238,7 @@ Core (src/) has zero Pi dependencies:
   format.ts        shared formatting helpers
 
 Additional extensions:
-  nvim-splits-autocomplete/   @vim: autocomplete for open splits
+  splits-autocomplete/       @vim: autocomplete for open splits
   undo/                       /neovim:undotree plus disabled-by-default persistent undo update hooks
 
 Additional Lua features:

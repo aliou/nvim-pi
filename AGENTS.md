@@ -45,7 +45,7 @@ extensions/
     hooks/                  # Event hooks
     commands/               # Slash commands
     components/             # Message renderers
-  nvim-splits-autocomplete/ # @vim: autocomplete provider
+  splits-autocomplete/       # @vim: autocomplete provider
     index.ts                # Extension entry
     provider.ts             # Autocomplete logic
     completion.ts           # Completion helpers
