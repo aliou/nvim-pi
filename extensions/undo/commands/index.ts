@@ -151,7 +151,7 @@ async function pickUndoTreeFile(
 }
 
 export function registerUndoTreeCommand(pi: ExtensionAPI): void {
-  pi.registerCommand("vim:undotree", {
+  pi.registerCommand("neovim:undotree", {
     description: "Show the Neovim persistent undo tree for a file",
     getArgumentCompletions: completeFilePath,
     handler: async (args, ctx) => {

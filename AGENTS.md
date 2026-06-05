@@ -51,7 +51,7 @@ extensions/
     completion.ts           # Completion helpers
   undo/                     # Persistent undo command + disabled-by-default update hooks
     index.ts                # Extension entry
-    commands/               # /vim:undotree command
+    commands/               # /neovim:undotree command
     hooks/                  # edit/write tracking hooks that update Neovim persistent undo files
     components/             # Undo tree overlay and picker UI
 

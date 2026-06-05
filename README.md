@@ -18,7 +18,7 @@ When Neovim is not running, the extension still loads cleanly and degrades grace
 |---|---|
 | `nvim_context` | Query the connected Neovim instance for editor context, splits, diagnostics, or current function |
 | `/neovim:settings` | Configure Neovim integration settings for the Pi extension |
-| `/vim:undotree [file]` | Inspect a Neovim persistent undo tree for a file |
+| `/neovim:undotree [file]` | Inspect a Neovim persistent undo tree for a file |
 | `@vim:` autocomplete | Type `@vim:` in Pi's input to autocomplete file paths from visible Neovim splits |
 
 Additional disabled-by-default behavior:
@@ -180,7 +180,7 @@ Commands and API:
 
 Pi extension commands:
 - `/neovim:settings` - configure connection messages, `@vim:` autocomplete, and persistent undo integration
-- `/vim:undotree [file]` - open a persistent undo tree overlay for a file; when no file is provided, Pi shows a picker if UI is available
+- `/neovim:undotree [file]` - open a persistent undo tree overlay for a file; when no file is provided, Pi shows a picker if UI is available
 
 ## Troubleshooting
 
@@ -239,7 +239,7 @@ Core (src/) has zero Pi dependencies:
 
 Additional extensions:
   nvim-splits-autocomplete/   @vim: autocomplete for open splits
-  undo/                       /vim:undotree plus disabled-by-default persistent undo update hooks
+  undo/                       /neovim:undotree plus disabled-by-default persistent undo update hooks
 
 Additional Lua features:
   cli/terminal     open/close/toggle Pi in a split or float

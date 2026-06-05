@@ -185,7 +185,7 @@ nvim_context
     Pi command for configuring connection status messages, @vim: autocomplete,
     and persistent undo integration.
 
-/vim:undotree [file]
+/neovim:undotree [file]
     Pi command for opening a Neovim persistent undo tree overlay. When no file
     is provided, Pi shows a picker if UI is available.
 
