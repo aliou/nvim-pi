@@ -74,7 +74,7 @@ async function openUndoTreeForFile(params: {
     undoBuffer = await readFile(undoFilePath);
   } catch {
     ctx.ui.notify(
-      `No undofile found for ${displayPath(ctx.cwd, filePath)}`,
+      `nvim: No undofile found for ${displayPath(ctx.cwd, filePath)}`,
       "warning",
     );
     return;
@@ -92,7 +92,7 @@ async function openUndoTreeForFile(params: {
     undoFile = parseUndofile(undoBuffer);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    ctx.ui.notify(`Could not parse undofile: ${message}`, "error");
+    ctx.ui.notify(`nvim: Could not parse undofile: ${message}`, "error");
     return;
   }
 
