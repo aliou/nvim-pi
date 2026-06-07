@@ -1,8 +1,8 @@
 /**
  * Neovim Context Tool
  *
- * Query the connected Neovim editor for context information:
- * - context: current file, cursor position, selection, filetype
+ * Query the connected Neovim editor for information:
+ * - focused_buffer: current file, cursor position, selection, filetype
  * - diagnostics: LSP diagnostics for current buffer
  * - current_function: treesitter info about function/class at cursor
  * - splits: all visible splits with metadata
@@ -24,12 +24,12 @@ import { queryNvim } from "../../../src/nvim";
 import type {
   CurrentFunctionResult,
   DiagnosticsResult,
-  NvimContext,
+  NvimFocusedBuffer,
   SplitsResult,
 } from "../../../src/types";
 import type { NvimConnectionState } from "../connection";
 import { clearNvimSocket, resolveNvimSocket } from "../connection";
-import type { NvimContextDetails } from "../types";
+import type { NvimToolDetails } from "../types";
 import { severityColor } from "../types";
 
 // ============================================================================
@@ -38,14 +38,14 @@ import { severityColor } from "../types";
 
 const parameters = Type.Object({
   action: StringEnum(
-    ["context", "diagnostics", "current_function", "splits"] as const,
+    ["focused_buffer", "diagnostics", "current_function", "splits"] as const,
     {
-      description: "The type of context to retrieve from Neovim",
+      description: "The type of information to retrieve from Neovim",
     },
   ),
 });
 
-type NvimContextParams = Static<typeof parameters>;
+type NvimToolParams = Static<typeof parameters>;
 
 // ============================================================================
 // Tool registration
@@ -58,10 +58,10 @@ export function registerNvimContextTool(
   const tool = defineTool({
     name: "nvim_context",
     label: "Neovim Context",
-    description: `Query the connected Neovim editor for context information.
+    description: `Query the connected Neovim editor for information.
 
 Available actions:
-- "context": current file, cursor position, selection, filetype (focused split only)
+- "focused_buffer": current file, cursor position, selection, filetype (focused split only)
 - "splits": all visible splits with metadata (file, filetype, visible lines, focused flag)
 - "diagnostics": LSP diagnostics for current buffer
 - "current_function": treesitter info about function/class at cursor
@@ -71,13 +71,14 @@ Use this tool when you need to know what the user is currently looking at in the
     parameters,
 
     promptSnippet:
-      "Query the connected Neovim editor for context (splits, diagnostics, cursor position, current function)",
+      "Query the connected Neovim editor (splits, diagnostics, focused buffer, current function)",
 
     promptGuidelines: [
       'Prefer nvim_context action="splits" when you need broad editor visibility.',
-      'Use nvim_context action="context" for focused file, cursor position, and selection.',
+      'Use nvim_context action="focused_buffer" for the active file, cursor position, and selection.',
       'Use nvim_context action="diagnostics" after edits or when investigating errors.',
-      "Do not call nvim_context if editor context is irrelevant to the task.",
+      'Use nvim_context action="current_function" to identify what function/class the cursor is in.',
+      "Do not call nvim_context if editor state is irrelevant to the task.",
     ],
 
     async execute(_toolCallId, params, signal, _onUpdate, ctx) {
@@ -97,7 +98,7 @@ Use this tool when you need to know what the user is currently looking at in the
             result: null,
             cwd: ctx.cwd,
             error: result.error,
-          } satisfies NvimContextDetails,
+          } satisfies NvimToolDetails,
         };
       }
 
@@ -109,7 +110,7 @@ Use this tool when you need to know what the user is currently looking at in the
             result: null,
             cwd: ctx.cwd,
             error: "No instance available",
-          } satisfies NvimContextDetails,
+          } satisfies NvimToolDetails,
         };
       }
 
@@ -121,7 +122,7 @@ Use this tool when you need to know what the user is currently looking at in the
           params.action,
           { signal },
         );
-        const nvimResult = rawNvimResult as NvimContextDetails["result"];
+        const nvimResult = rawNvimResult as NvimToolDetails["result"];
 
         return {
           content: [
@@ -131,7 +132,7 @@ Use this tool when you need to know what the user is currently looking at in the
             action: params.action,
             result: nvimResult,
             cwd: ctx.cwd,
-          } satisfies NvimContextDetails,
+          } satisfies NvimToolDetails,
         };
       } catch (err) {
         // If query fails, clear stored socket so we rediscover next time
@@ -162,12 +163,12 @@ Use this tool when you need to know what the user is currently looking at in the
             result: null,
             cwd: ctx.cwd,
             error: errorMsg,
-          } satisfies NvimContextDetails,
+          } satisfies NvimToolDetails,
         };
       }
     },
 
-    renderCall(args: NvimContextParams, theme: Theme) {
+    renderCall(args: NvimToolParams, theme: Theme) {
       return new ToolCallHeader(
         {
           toolName: "Neovim Context",
@@ -187,9 +188,7 @@ Use this tool when you need to know what the user is currently looking at in the
         return new Text(theme.fg("muted", "Neovim Context: querying..."), 0, 0);
       }
 
-      const rawDetails = result.details as
-        | Partial<NvimContextDetails>
-        | undefined;
+      const rawDetails = result.details as Partial<NvimToolDetails> | undefined;
 
       // 2. Handle empty details from thrown errors (framework passes {})
       if (!rawDetails?.action) {
@@ -199,7 +198,7 @@ Use this tool when you need to know what the user is currently looking at in the
         return new Text(theme.fg("error", errorMsg), 0, 0);
       }
 
-      const details = rawDetails as NvimContextDetails;
+      const details = rawDetails as NvimToolDetails;
       const { action, result: nvimResult, cwd } = details;
 
       const container = new Container();
@@ -227,24 +226,24 @@ Use this tool when you need to know what the user is currently looking at in the
       let expandedLines = "";
 
       switch (action) {
-        case "context": {
-          const nvimCtx = nvimResult as NvimContext | null;
-          if (!nvimCtx?.file) {
+        case "focused_buffer": {
+          const nvimBuf = nvimResult as NvimFocusedBuffer | null;
+          if (!nvimBuf?.file) {
             fields.push({
-              label: "Context",
-              value: "No context available",
+              label: "Focused buffer",
+              value: "No focused buffer available",
               showCollapsed: true,
             });
           } else {
-            const filePath = formatPath(nvimCtx.file, cwd);
-            const line = nvimCtx.cursor?.line ?? 1;
-            const col = nvimCtx.cursor?.col ?? 1;
+            const filePath = formatPath(nvimBuf.file, cwd);
+            const line = nvimBuf.cursor?.line ?? 1;
+            const col = nvimBuf.cursor?.col ?? 1;
             let value = `${filePath}:${line}:${col}`;
-            if (nvimCtx.filetype) value += ` (${nvimCtx.filetype})`;
+            if (nvimBuf.filetype) value += ` (${nvimBuf.filetype})`;
             fields.push({ label: "File", value, showCollapsed: true });
 
-            if (options.expanded && nvimCtx.selection) {
-              const sel = nvimCtx.selection;
+            if (options.expanded && nvimBuf.selection) {
+              const sel = nvimBuf.selection;
               expandedLines = `${theme.fg("muted", "Selection:")} ${theme.fg("dim", `${sel.start.line}:${sel.start.col} - ${sel.end.line}:${sel.end.col}`)}`;
               if (sel.text) {
                 expandedLines += `\n${theme.fg("dim", sel.text)}`;

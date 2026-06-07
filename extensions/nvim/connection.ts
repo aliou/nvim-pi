@@ -55,9 +55,14 @@ async function getInstanceInfo(
   instance: DiscoveredInstance,
 ): Promise<InstanceInfo> {
   try {
-    const result = await queryNvim(exec, instance.lockfile.socket, "context", {
-      timeout: 1000,
-    });
+    const result = await queryNvim(
+      exec,
+      instance.lockfile.socket,
+      "focused_buffer",
+      {
+        timeout: 1000,
+      },
+    );
     const ctx = result as {
       file?: string;
       cursor?: { line: number };

@@ -8,7 +8,7 @@
 // Neovim RPC result types
 // ============================================================================
 
-export interface NvimContext {
+export interface NvimFocusedBuffer {
   file: string;
   cursor: { line: number; col: number };
   selection?: {

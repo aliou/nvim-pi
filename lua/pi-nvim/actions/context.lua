@@ -2,20 +2,20 @@ local M = {}
 
 local source = require('pi-nvim.actions.source')
 
----@class pi.ContextSelection
+---@class pi.FocusedBufferSelection
 ---@field start { line: number, col: number }
 ---@field end { line: number, col: number }
 
----@class pi.Context
+---@class pi.FocusedBuffer
 ---@field file string
 ---@field cursor { line: number, col: number }
----@field selection? pi.ContextSelection
+---@field selection? pi.FocusedBufferSelection
 ---@field filetype string
 ---@field modified boolean
 
 ---@param bufnr number
 ---@param mode string
----@return pi.ContextSelection?
+---@return pi.FocusedBufferSelection?
 ---@diagnostic disable-next-line: unused-local
 function M.get_visual_selection(bufnr, mode)
   -- Use "v" (visual start) and "." (cursor) for the active selection.
@@ -46,7 +46,7 @@ function M.get_visual_selection(bufnr, mode)
   }
 end
 
----@return pi.Context?
+---@return pi.FocusedBuffer?
 function M.execute()
   local winnr = source.get_win()
   if not winnr then
@@ -55,7 +55,7 @@ function M.execute()
   local bufnr = vim.api.nvim_win_get_buf(winnr)
   local cursor = vim.api.nvim_win_get_cursor(winnr)
 
-  ---@type pi.Context
+  ---@type pi.FocusedBuffer
   local result = {
     file = vim.api.nvim_buf_get_name(bufnr),
     cursor = { line = cursor[1], col = cursor[2] + 1 },

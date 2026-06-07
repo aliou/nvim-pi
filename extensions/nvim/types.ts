@@ -8,7 +8,7 @@
 import type {
   CurrentFunctionResult,
   DiagnosticsResult,
-  NvimContext,
+  NvimFocusedBuffer,
   SplitsResult,
 } from "../../src/types";
 
@@ -16,21 +16,21 @@ import type {
 // Tool detail types
 // ============================================================================
 
-export type NvimContextAction =
-  | "context"
+export type NvimQueryAction =
+  | "focused_buffer"
   | "diagnostics"
   | "current_function"
   | "splits";
 
 export type NvimResult =
-  | NvimContext
+  | NvimFocusedBuffer
   | DiagnosticsResult
   | CurrentFunctionResult
   | SplitsResult
   | null;
 
-export interface NvimContextDetails {
-  action: NvimContextAction;
+export interface NvimToolDetails {
+  action: NvimQueryAction;
   result: NvimResult;
   cwd: string;
   error?: string;

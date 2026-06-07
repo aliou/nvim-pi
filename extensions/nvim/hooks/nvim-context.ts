@@ -3,7 +3,7 @@
  *
  * Lifecycle events:
  * - session_start: auto-connects to Neovim instance
- * - before_agent_start: injects editor context (splits, cursor position)
+ * - before_agent_start: injects editor state (splits, cursor position)
  * - tool_result: reloads files in Neovim when write/edit tools complete
  * - turn_end: sends LSP errors for modified files
  */
@@ -27,32 +27,24 @@ import { clearNvimSocket, resolveNvimSocket } from "../connection";
 // ============================================================================
 
 /**
- * Format splits info into a human-readable context string for the system
- * prompt.
+ * Format splits info into a minimal editor-state block for the system prompt.
  */
-function formatSplitsContext(splits: SplitInfo[], cwd: string): string {
-  if (splits.length === 0) {
-    return "No files are currently open in the editor.";
-  }
-
-  const lines: string[] = ["Current editor state:"];
+function formatEditorState(splits: SplitInfo[], cwd: string): string {
+  const lines: string[] = ["<neovim-editor-state>"];
 
   for (const split of splits) {
     const filePath = formatPath(split.file, cwd);
-    const marker = split.is_focused ? " [focused]" : "";
-    const modified = split.modified ? " [modified]" : "";
-
-    let line = `- ${filePath}${marker}${modified}`;
-    line += ` (${split.filetype || "unknown"})`;
-    line += ` visible lines ${split.visible_range.first}-${split.visible_range.last}`;
+    const focused = split.is_focused ? " (focused)" : "";
+    let line = `${filePath}${focused} visible-lines:${split.visible_range.first}-${split.visible_range.last}`;
 
     if (split.is_focused && split.cursor) {
-      line += `, cursor at line ${split.cursor.line}:${split.cursor.col}`;
+      line += ` cursor:${split.cursor.line}:${split.cursor.col}`;
     }
 
     lines.push(line);
   }
 
+  lines.push("</neovim-editor-state>");
   return lines.join("\n");
 }
 
@@ -176,15 +168,17 @@ export function registerNvimContextHook(
     }
   });
 
+  const shouldInjectEditorState = () => getConfig().nvim.injectEditorState;
+
   // -------------------------------------------------------------------------
-  // Before agent start: inject editor context into system prompt
+  // Before agent start: inject editor state into system prompt
   // -------------------------------------------------------------------------
 
   pi.on("before_agent_start", async (event, ctx) => {
     // Reset modified files tracking for new prompt
     state.modifiedFilesThisTurn = new Set();
 
-    if (!state.socket) return;
+    if (!shouldInjectEditorState() || !state.socket) return;
 
     try {
       const raw = await queryNvim(pi.exec, state.socket, "splits", {
@@ -196,13 +190,13 @@ export function registerNvimContextHook(
         return;
       }
 
-      const editorContext = formatSplitsContext(raw, ctx.cwd);
+      const editorState = formatEditorState(raw, ctx.cwd);
 
       return {
-        systemPrompt: `${event.systemPrompt}\n\n${editorContext}`,
+        systemPrompt: `${event.systemPrompt}\n\n${editorState}`,
       };
     } catch {
-      // Query failed, continue without context
+      // Query failed, continue without editor state
       return;
     }
   });

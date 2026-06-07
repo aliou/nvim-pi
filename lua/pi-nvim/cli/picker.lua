@@ -24,7 +24,7 @@ local function format_result(name, result, source_buf)
     return nil
   end
 
-  if name == 'context' then
+  if name == 'focused_buffer' then
     if result.file and result.file ~= '' then
       local rel = make_relative(result.file)
       return string.format('@%s:%d:%d', rel, result.cursor.line, result.cursor.col)
@@ -70,7 +70,7 @@ function M.show(term)
   vim.api.nvim_set_current_win(source_win)
 
   local items = {}
-  local action_names = { 'context', 'diagnostics', 'current_function' }
+  local action_names = { 'focused_buffer', 'diagnostics', 'current_function' }
 
   for _, name in ipairs(action_names) do
     local result = actions.dispatch(name)
@@ -94,7 +94,7 @@ function M.show(term)
   vim.api.nvim_set_current_win(current_win)
 
   if #items == 0 then
-    vim.notify('[pi-nvim] No context available', vim.log.levels.WARN)
+    vim.notify('[pi-nvim] No focused buffer available', vim.log.levels.WARN)
     return
   end
 

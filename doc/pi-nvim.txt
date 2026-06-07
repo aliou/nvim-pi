@@ -178,7 +178,7 @@ require("pi-nvim").query(action)                          *pi-nvim.query()*
 7. PI EXTENSION FEATURES                                  *pi-nvim-extension*
 
 nvim_context
-    Pi tool for querying focused editor context, visible splits, diagnostics,
+    Pi tool for querying the focused buffer, visible splits, diagnostics,
     or the current function.
 
 /neovim:settings
@@ -205,7 +205,7 @@ The bundled Pi extension also works when installed directly with:
 <
 
 When no Neovim instance is running, the extension still loads cleanly and
-reports that no instance was found when context is requested.
+reports that no instance was found when a query is requested.
 
 ==============================================================================
 vim:tw=78:ts=8:ft=help:norl:

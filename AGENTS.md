@@ -38,11 +38,14 @@ src/                        # Core — zero Pi dependencies
 extensions/
   nvim/                     # Main Pi extension
     index.ts                # Extension entry, registers hooks, tools, commands, renderers
-    config.ts               # Configuration loading and defaults
+    config/
+      index.ts              # ConfigLoader, re-exports, emitNvimConfigUpdated
+      types.ts              # Config types, interfaces, defaults, event constants
+      migrations.ts         # Config migrations + migration message queue
     connection.ts           # Shared socket resolution + caching
     types.ts                # Tool detail types + severityColor
     tools/                  # LLM tools
-    hooks/                  # Event hooks
+    hooks/                  # Event hooks (editor state injection, lifecycle)
     commands/               # Slash commands
     components/             # Message renderers
   splits-autocomplete/       # @vim: autocomplete provider

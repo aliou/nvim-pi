@@ -1,6 +1,6 @@
 local M = {}
 
----@alias pi.Action "context" | "diagnostics" | "current_function" | "splits" | "notify"
+---@alias pi.Action "focused_buffer" | "diagnostics" | "current_function" | "splits" | "notify"
 
 --- Dispatch an action query from Pi
 --- Actions can be strings (simple queries) or tables (with parameters)
@@ -10,7 +10,7 @@ local M = {}
 function M.dispatch(action)
   -- Handlers that take no parameters
   local simple_handlers = {
-    context = require('pi-nvim.actions.context'),
+    focused_buffer = require('pi-nvim.actions.context'),
     diagnostics = require('pi-nvim.actions.diagnostics'),
     current_function = require('pi-nvim.actions.current_function'),
     splits = require('pi-nvim.actions.splits'),

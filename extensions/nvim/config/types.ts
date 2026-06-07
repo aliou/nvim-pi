@@ -1,10 +1,3 @@
-import {
-  buildSchemaUrl,
-  ConfigLoader,
-  type Migration,
-} from "@aliou/pi-utils-settings";
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-
 export type NvimFeatureId = "completion" | "undo";
 
 export const NVIM_EXTENSIONS_REQUEST_EVENT =
@@ -27,6 +20,8 @@ export interface NvimConfigUpdatedPayload {
 export interface NvimCoreConfig {
   /** Show Neovim connection status messages in chat. */
   showConnectionMessages?: boolean;
+  /** Inject current editor state (splits, cursor) into each prompt. */
+  injectEditorState?: boolean;
 }
 
 /** Settings for the Vim-prefix autocomplete extension. */
@@ -54,6 +49,7 @@ export interface NvimConfig {
 export interface ResolvedNvimConfig {
   nvim: {
     showConnectionMessages: boolean;
+    injectEditorState: boolean;
   };
   completion: {
     enabled: boolean;
@@ -63,9 +59,10 @@ export interface ResolvedNvimConfig {
   };
 }
 
-const DEFAULT_CONFIG: ResolvedNvimConfig = {
+export const DEFAULT_CONFIG: ResolvedNvimConfig = {
   nvim: {
     showConnectionMessages: true,
+    injectEditorState: false,
   },
   completion: {
     enabled: true,
@@ -74,48 +71,3 @@ const DEFAULT_CONFIG: ResolvedNvimConfig = {
     enabled: false,
   },
 };
-
-const schemaUrl = buildSchemaUrl("aliou/nvim-pi", "main", {
-  template:
-    "https://raw.githubusercontent.com/{packageName}/{version}/{schemaPath}",
-});
-
-const migrations: Migration<NvimConfig>[] = [
-  {
-    name: "nest-nvim-settings",
-    shouldRun: (config) =>
-      "showConnectionMessages" in
-      (config as NvimConfig & { showConnectionMessages?: boolean }),
-    run: (config) => {
-      const legacy = config as NvimConfig & {
-        showConnectionMessages?: boolean;
-      };
-      const migrated: NvimConfig = {
-        ...config,
-        nvim: {
-          ...config.nvim,
-          showConnectionMessages: legacy.showConnectionMessages,
-        },
-      };
-      delete (migrated as NvimConfig & { showConnectionMessages?: boolean })
-        .showConnectionMessages;
-      return migrated;
-    },
-  },
-];
-
-export const configLoader = new ConfigLoader<NvimConfig, ResolvedNvimConfig>(
-  "neovim",
-  DEFAULT_CONFIG,
-  {
-    scopes: ["global"],
-    migrations,
-    schemaUrl,
-  },
-);
-
-export function emitNvimConfigUpdated(pi: ExtensionAPI): void {
-  pi.events.emit(NVIM_CONFIG_UPDATED_EVENT, {
-    config: configLoader.getConfig(),
-  });
-}

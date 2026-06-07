@@ -16,7 +16,7 @@ When Neovim is not running, the extension still loads cleanly and degrades grace
 
 | Tool / Command | Description |
 |---|---|
-| `nvim_context` | Query the connected Neovim instance for editor context, splits, diagnostics, or current function |
+| `nvim_context` | Query the connected Neovim instance for focused buffer, splits, diagnostics, or current function |
 | `/neovim:settings` | Configure Neovim integration settings for the Pi extension |
 | `/neovim:undotree [file]` | Inspect a Neovim persistent undo tree for a file |
 | `@vim:` autocomplete | Type `@vim:` in Pi's input to autocomplete file paths from visible Neovim splits |
@@ -26,7 +26,7 @@ Additional disabled-by-default behavior:
 
 Behavior provided by hooks:
 - automatically discovers and connects to a matching Neovim instance on session start
-- injects visible split context into the system prompt on each turn
+- injects visible editor state into the system prompt on each turn (configurable)
 - reloads files in Neovim after successful `write` and `edit` tool calls
 - sends LSP diagnostics for modified files after the turn ends
 
@@ -82,7 +82,7 @@ When you open Pi through `pi-nvim`, the plugin launches:
 pi --extension /absolute/path/to/nvim-pi
 ```
 
-The extension then injects its Neovim guidance and runtime editor context through hooks. By default (`load_extension = "auto"`), the plugin checks whether nvim-pi is installed globally in Pi and skips `--extension` if so — this avoids loading the extension twice when you already installed it with `pi install`.
+The extension then injects runtime editor state through hooks. By default (`load_extension = "auto"`), the plugin checks whether nvim-pi is installed globally in Pi and skips `--extension` if so — this avoids loading the extension twice when you already installed it with `pi install`.
 
 ### As a Pi extension
 
@@ -103,6 +103,7 @@ This is useful if you want the extension available in terminal Pi sessions too. 
 | Setting | Default | Description |
 |---|---|---|
 | `Connection status messages` | `on` | Show `nvim: connected` / `no instance found` style messages in the Pi session |
+| `Editor state injection` | `off` | Inject current Neovim editor state (open splits, cursor position) into each prompt automatically |
 | `@vim: autocomplete` | `enabled` | Enable autocomplete for open Neovim splits |
 | `Persistent undo tools` | `disabled` | Update Neovim persistent undo files after successful Pi `edit` and `write` tool calls |
 
@@ -159,7 +160,7 @@ Terminal/window-local keys are configured under `setup({ win = { keys = ... } })
 ### From Pi
 
 The `nvim_context` tool supports these actions:
-- `context` - focused file, cursor position, selection, filetype
+- `focused_buffer` - focused file, cursor position, selection, filetype
 - `splits` - all visible splits with metadata
 - `diagnostics` - diagnostics for the current buffer
 - `current_function` - treesitter info for the symbol at the cursor
@@ -220,7 +221,7 @@ require("pi-nvim").setup()                    pi --extension /path/to/nvim-pi
           |                                                   |
           v                                                   v
    rpc.start()                                     extensions/nvim/index.ts registers:
-   lockfile.create()                               - hooks (system prompt, nvim context)
+   lockfile.create()                               - hooks (editor state, lifecycle)
           |                                      - tool (nvim_context)
           v                                      - command (/neovim:settings)
 ~/.local/share/nvim/pi-nvim/                       - renderers (connection, diagnostics)

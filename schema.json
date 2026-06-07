@@ -36,6 +36,10 @@
       "additionalProperties": false,
       "description": "Settings for the main Neovim integration extension.",
       "properties": {
+        "injectEditorState": {
+          "description": "Inject current editor state (splits, cursor) into each prompt.",
+          "type": "boolean"
+        },
         "showConnectionMessages": {
           "description": "Show Neovim connection status messages in chat.",
           "type": "boolean"

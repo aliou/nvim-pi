@@ -61,6 +61,8 @@ export function registerNeovimSettings(
       const showMessages =
         tabConfig?.nvim?.showConnectionMessages ??
         resolved.nvim.showConnectionMessages;
+      const injectEditorState =
+        tabConfig?.nvim?.injectEditorState ?? resolved.nvim.injectEditorState;
       const completionEnabled =
         tabConfig?.completion?.enabled ?? resolved.completion.enabled;
       const undoEnabled = tabConfig?.undo?.enabled ?? resolved.undo.enabled;
@@ -75,6 +77,14 @@ export function registerNeovimSettings(
               description:
                 "Show Neovim connection status messages in chat (connected/disconnected/no instance/multiple instances).",
               currentValue: showMessages ? "on" : "off",
+              values: ["on", "off"],
+            },
+            {
+              id: "injectEditorState",
+              label: "Editor state injection",
+              description:
+                "Inject current Neovim editor state (open splits, cursor position) into each prompt automatically.",
+              currentValue: injectEditorState ? "on" : "off",
               values: ["on", "off"],
             },
           ],
@@ -115,6 +125,12 @@ export function registerNeovimSettings(
           updated.nvim = {
             ...updated.nvim,
             showConnectionMessages: newValue === "on",
+          };
+          return updated;
+        case "injectEditorState":
+          updated.nvim = {
+            ...updated.nvim,
+            injectEditorState: newValue === "on",
           };
           return updated;
         case "completion":

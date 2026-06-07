@@ -3,7 +3,7 @@
  *
  * Provides Neovim integration:
  * - Auto-connects to Neovim on session start
- * - Injects current editor context (splits) on each prompt
+ * - Injects current editor state (splits) on each prompt when enabled
  * - Reloads files in Neovim when write/edit tools complete
  * - Sends LSP errors for modified files at turn end
  * - nvim_context tool for on-demand queries
@@ -15,6 +15,7 @@ import { registerCommands } from "./commands";
 import { registerRenderers } from "./components";
 import {
   configLoader,
+  drainMigrationMessages,
   emitNvimConfigUpdated,
   NVIM_EXTENSIONS_REGISTER_EVENT,
   NVIM_EXTENSIONS_REQUEST_EVENT,
@@ -41,10 +42,20 @@ export default async function nvimContextExtension(pi: ExtensionAPI) {
     loadedFeatures.add(feature);
   });
 
-  pi.on("session_start", async () => {
+  pi.on("session_start", async (_event, ctx) => {
     loadedFeatures.clear();
     pi.events.emit(NVIM_EXTENSIONS_REQUEST_EVENT, undefined);
     emitNvimConfigUpdated(pi);
+
+    const messages = drainMigrationMessages();
+    if (messages.length === 0) {
+      return;
+    }
+    const text = [
+      "nvim: config warnings:",
+      ...messages.map((msg) => `- ${msg}`),
+    ].join("\n");
+    ctx.ui.notify(text, "warning");
   });
 
   registerRenderers(pi);
