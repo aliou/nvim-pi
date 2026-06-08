@@ -98,12 +98,7 @@ export function registerNvimContextHook(
     const instances = discoverNvim(ctx.cwd);
     if (instances.length === 0) {
       if (shouldShowConnectionMessages()) {
-        pi.sendMessage({
-          customType: "nvim-connection",
-          content: "nvim: no instance found",
-          display: true,
-          details: { status: "none" },
-        });
+        ctx.ui.notify("nvim: no instance found", "info");
       }
       return;
     }
