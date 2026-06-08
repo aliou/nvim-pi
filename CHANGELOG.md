@@ -1,5 +1,11 @@
 # @aliou/nvim-pi
 
+## 0.6.1
+
+### Patch Changes
+
+- b175307: Use ctx.ui.notify instead of pi.sendMessage for "no instance found" — avoids adding a message entry to the session
+
 ## 0.6.0
 
 ### Minor Changes
