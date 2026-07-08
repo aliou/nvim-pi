@@ -17,9 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
       pull-requests: write
-      id-token: write
 
     steps:
       - name: Checkout
@@ -34,8 +32,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24"
-          registry-url: "https://registry.npmjs.org"
-          scope: "@aliou"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -72,52 +68,41 @@ jobs:
           rm -f release.json
         continue-on-error: true
 
-      - name: Create Release PR or Publish
+      - name: Create Release PR or bump version
         id: changesets
         uses: changesets/action@v1
         with:
           version: pnpm changeset version
-          publish: pnpm changeset publish
           title: ${{ steps.release-info.outputs.title }}
           commit: ${{ steps.release-info.outputs.commit }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
 
-      - name: Create GitHub releases
-        if: steps.changesets.outputs.published == 'true'
+      - name: Create GitHub release and tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
         run: |
-          node <<'NODE'
-          const { execSync } = require("node:child_process");
+          current_version=$(node -p "require('./package.json').version")
 
-          const published = JSON.parse(process.env.PUBLISHED_PACKAGES || "[]");
+          if [ "$(git rev-list --count HEAD)" -lt 2 ]; then
+            echo "Not enough history to compare versions"
+            exit 0
+          fi
 
-          for (const pkg of published) {
-            const tag = `v${pkg.version}`;
+          previous_version=$(git show HEAD~1:package.json | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version")
 
-            const existing = execSync(`git tag --list ${tag}`, { encoding: "utf8" }).trim();
-            if (!existing) {
-              execSync(`git tag ${tag}`);
-              execSync(`git push origin ${tag}`);
-            }
+          if [ "$current_version" = "$previous_version" ]; then
+            echo "No version change ($current_version), skipping release"
+            exit 0
+          fi
 
-            let hasRelease = false;
-            try {
-              const output = execSync(`gh release view ${tag} --json tagName --jq .tagName`, {
-                stdio: ["ignore", "pipe", "ignore"],
-              }).toString().trim();
-              hasRelease = output.length > 0;
-            } catch {
-              hasRelease = false;
-            }
+          tag="v${current_version}"
 
-            if (!hasRelease) {
-              execSync(`gh release create ${tag} --title ${tag} --notes "Release ${tag}"`, {
-                stdio: "inherit",
-              });
-            }
-          }
-          NODE
+          if ! git rev-parse "$tag" >/dev/null 2>&1; then
+            git tag "$tag"
+            git push origin "$tag"
+          fi
+
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --title "$tag" --notes "Release ${tag}"
+          fi
