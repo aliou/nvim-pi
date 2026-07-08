@@ -1,6 +1,6 @@
 # nvim-pi
 
-Public Pi extension bundled with a Neovim plugin. People could be using this through either Neovim plugin install or `pi install git:github.com/aliou/nvim-pi`, so keep backwards compatibility in mind when making changes.
+Public Pi extension bundled with a Neovim plugin. People could be using this through either Neovim plugin install, `pi install npm:@aliou/nvim-pi`, or `pi install git:github.com/aliou/nvim-pi`, so keep backwards compatibility in mind when making changes.
 
 Pi is pre-1.0.0, so breaking changes can happen between Pi versions. This extension must stay up to date with Pi or things will break.
 
@@ -77,5 +77,7 @@ This extension intentionally deviates from the standard load-config -> check-ena
 README.md serves both audiences:
 - Neovim users installing the plugin
 - Pi users installing the extension directly
+
+Keep `README.md` and `doc/pi-nvim.txt` aligned for user-facing install, configuration, command, tool, and API changes.
 
 `doc/pi-nvim.txt` is the detailed Neovim help reference.

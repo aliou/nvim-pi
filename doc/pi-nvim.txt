@@ -28,6 +28,16 @@ Install the repo as a Neovim plugin and call setup:
     require("pi-nvim").setup()
 <
 
+Example with lazy.nvim:
+>lua
+    {
+      "aliou/nvim-pi",
+      config = function()
+        require("pi-nvim").setup()
+      end,
+    }
+<
+
 To use an existing Pi git install as a Neovim plugin:
 >
     pi install git:github.com/aliou/nvim-pi
@@ -123,9 +133,10 @@ win.keys                                                    *pi-nvim-config-win-
     Window-local key definitions for close, stopinsert, suspend, and picker.
 
 Pi extension settings:
-    /neovim:settings exposes connection status messages, @vim: autocomplete,
-    and persistent undo integration toggles. The @vim: autocomplete provider is
-    enabled by default. Persistent undo updates are disabled by default.
+    /neovim:settings exposes connection status messages, editor state injection,
+    @vim: autocomplete, and persistent undo integration toggles. The @vim:
+    autocomplete provider is enabled by default. Editor state injection and
+    persistent undo updates are disabled by default.
 
 ==============================================================================
 4. COMMANDS                                                *pi-nvim-commands*
@@ -171,6 +182,9 @@ require("pi-nvim").close()                                *pi-nvim.close()*
 require("pi-nvim").toggle()                              *pi-nvim.toggle()*
     Toggle the Pi terminal.
 
+require("pi-nvim").is_open()                            *pi-nvim.is_open()*
+    Return whether the Pi terminal window is open.
+
 require("pi-nvim").query(action)                          *pi-nvim.query()*
     Entry point used by the bundled Pi extension through `nvim --remote-expr`.
 
@@ -182,8 +196,8 @@ nvim_context
     or the current function.
 
 /neovim:settings
-    Pi command for configuring connection status messages, @vim: autocomplete,
-    and persistent undo integration.
+    Pi command for configuring connection status messages, editor state injection,
+    @vim: autocomplete, and persistent undo integration.
 
 /neovim:undotree [file]
     Pi command for opening a Neovim persistent undo tree overlay. When no file
@@ -200,6 +214,11 @@ Persistent undo integration
 8. NOTES                                                        *pi-nvim-notes*
 
 The bundled Pi extension also works when installed directly with:
+>
+    pi install npm:@aliou/nvim-pi
+<
+
+or from GitHub:
 >
     pi install git:github.com/aliou/nvim-pi
 <

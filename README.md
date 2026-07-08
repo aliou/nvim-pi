@@ -2,42 +2,90 @@
 
 # @aliou/nvim-pi
 
-Neovim plugin with a bundled Pi extension.
+Run Pi from Neovim and let Pi understand the editor you are working in.
+
+`@aliou/nvim-pi` is both:
+- a Neovim plugin that opens Pi in a split or float and exposes editor state over RPC
+- a Pi extension that discovers Neovim, reads context, reloads files, and reports diagnostics
 
 This package works in two modes:
 - install it as a Neovim plugin and let it launch Pi with the bundled extension
-- install it with `pi install git:github.com/aliou/nvim-pi` and use the extension directly in terminal Pi sessions
+- install it as a Pi package and use the extension directly in terminal Pi sessions
 
 When Neovim is not running, the extension still loads cleanly and degrades gracefully.
 
-## What it provides
+## Highlights
 
-### Pi extension
+- Open, close, and toggle Pi from Neovim.
+- Query focused buffer, visible splits, diagnostics, and the current Treesitter symbol from Pi.
+- Autocomplete visible Neovim split paths with `@vim:` in Pi.
+- Reload files in Neovim after Pi writes or edits them.
+- Optionally inject current editor state into each Pi turn.
+- Optionally preserve Neovim persistent undo history for Pi edits.
 
-| Tool / Command | Description |
-|---|---|
-| `nvim_context` | Query the connected Neovim instance for focused buffer, splits, diagnostics, or current function |
-| `/neovim:settings` | Configure Neovim integration settings for the Pi extension |
-| `/neovim:undotree [file]` | Inspect a Neovim persistent undo tree for a file |
-| `@vim:` autocomplete | Type `@vim:` in Pi's input to autocomplete file paths from visible Neovim splits |
+## Feature demos
 
-Additional disabled-by-default behavior:
-- `extensions/undo` can update matching Neovim persistent undo files after successful Pi `edit` and `write` tool calls.
+### Open Pi inside Neovim
 
-Behavior provided by hooks:
-- automatically discovers and connects to a matching Neovim instance on session start
-- injects visible editor state into the system prompt on each turn (configurable)
+The Neovim plugin opens Pi in a terminal split or float, passes through selected Pi CLI flags, and keeps Neovim file state fresh while Pi is open.
+
+<!-- Demo placeholder: add GIF/video showing `require("pi-nvim").toggle()` opening Pi from Neovim. -->
+
+Related Neovim API:
+- `require("pi-nvim").open()`
+- `require("pi-nvim").close()`
+- `require("pi-nvim").toggle()`
+- `require("pi-nvim").is_open()`
+- `:PiNvimStatus`
+
+### Query Neovim context from Pi
+
+The `nvim_context` tool queries the connected Neovim instance.
+
+Supported actions:
+- `focused_buffer` - focused file, cursor position, selection, and filetype
+- `splits` - all visible splits with file metadata, visible ranges, and focus state
+- `diagnostics` - LSP diagnostics for the current buffer
+- `current_function` - Treesitter symbol under the cursor
+
+<!-- Demo placeholder: add GIF/video showing Pi calling `nvim_context` with `splits` and `diagnostics`. -->
+
+### Complete open Neovim files with `@vim:`
+
+Type `@vim:` in Pi's input to complete file paths from visible Neovim splits. Focused and recently accessed splits are ranked first.
+
+<!-- Demo placeholder: add GIF/video showing `@vim:` autocomplete in Pi. -->
+
+### Configure integration settings from Pi
+
+Run `/neovim:settings` to configure the Pi extension.
+
+Available settings:
+
+| Setting | Default | Description |
+|---|---|---|
+| `Connection status messages` | `on` | Show `nvim: connected` / `no instance found` style messages in the Pi session |
+| `Editor state injection` | `off` | Inject current Neovim editor state into each prompt automatically |
+| `@vim: autocomplete` | `enabled` | Enable autocomplete for open Neovim splits |
+| `Persistent undo tools` | `disabled` | Update Neovim persistent undo files after successful Pi `edit` and `write` tool calls |
+
+<!-- Demo placeholder: add GIF/video showing `/neovim:settings` and toggling editor state injection. -->
+
+### Inspect Neovim persistent undo
+
+Run `/neovim:undotree [file]` to inspect a Neovim persistent undo tree. When no file is provided, Pi shows a picker if UI is available.
+
+Persistent undo updates are disabled by default. Enable `Persistent undo tools` in `/neovim:settings` to update matching Neovim persistent undo files after successful Pi `edit` and `write` tool calls.
+
+<!-- Demo placeholder: add GIF/video showing `/neovim:undotree` with the picker and overlay. -->
+
+### Automatic hooks
+
+The Pi extension also:
+- discovers and connects to a matching Neovim instance on session start
 - reloads files in Neovim after successful `write` and `edit` tool calls
 - sends LSP diagnostics for modified files after the turn ends
-
-### Neovim plugin
-
-- starts a Neovim RPC server and writes lockfiles Pi can discover
-- opens Pi in a terminal split or float
-- passes through selected Pi CLI flags
-- runs a periodic `checktime` timer while Pi is open to detect external file changes
-- provides a context picker (`<C-Space>` by default) to send editor context to Pi
-- exposes `:PiNvimStatus`
+- optionally injects visible editor state into each turn when enabled
 
 ## Setup
 
@@ -50,6 +98,17 @@ Example with `vim.pack`:
 ```lua
 vim.pack.add({ { name = "nvim-pi", src = "https://github.com/aliou/nvim-pi" } })
 require("pi-nvim").setup()
+```
+
+Example with `lazy.nvim`:
+
+```lua
+{
+  "aliou/nvim-pi",
+  config = function()
+    require("pi-nvim").setup()
+  end,
+}
 ```
 
 Use an existing Pi git install as a Neovim plugin:
@@ -89,6 +148,12 @@ The extension then injects runtime editor state through hooks. By default (`load
 You can also install it directly in Pi:
 
 ```bash
+pi install npm:@aliou/nvim-pi
+```
+
+or from GitHub:
+
+```bash
 pi install git:github.com/aliou/nvim-pi
 ```
 
@@ -98,16 +163,7 @@ This is useful if you want the extension available in terminal Pi sessions too. 
 
 ### Pi extension config
 
-`/neovim:settings` currently exposes:
-
-| Setting | Default | Description |
-|---|---|---|
-| `Connection status messages` | `on` | Show `nvim: connected` / `no instance found` style messages in the Pi session |
-| `Editor state injection` | `off` | Inject current Neovim editor state (open splits, cursor position) into each prompt automatically |
-| `@vim: autocomplete` | `enabled` | Enable autocomplete for open Neovim splits |
-| `Persistent undo tools` | `disabled` | Update Neovim persistent undo files after successful Pi `edit` and `write` tool calls |
-
-Feature toggles are shown as unavailable if Pi did not load that extension entry point.
+Run `/neovim:settings` in Pi to configure the settings listed in Feature demos. Feature toggles are shown as unavailable if Pi did not load that extension entry point.
 
 ### Neovim plugin config
 
@@ -185,6 +241,12 @@ Pi extension commands:
 
 ## Troubleshooting
 
+### Open the Neovim help
+
+```vim
+:help pi-nvim
+```
+
 ### Pi cannot find Neovim
 
 Check:
@@ -215,21 +277,26 @@ Check:
 ## Architecture
 
 ```text
-Neovim plugin (Lua)                            Pi extension (TypeScript)
--------------------                            ------------------------
-require("pi-nvim").setup()                    pi --extension /path/to/nvim-pi
+Neovim plugin (Lua)                               Pi package / extension (TypeScript)
+-------------------                               -----------------------------------
+require("pi-nvim").setup()                       package.json pi.extensions loads:
+          |                                      - extensions/nvim/index.ts
+          v                                      - extensions/splits-autocomplete/index.ts
+   rpc.start()                                   - extensions/undo/index.ts
           |                                                   |
           v                                                   v
-   rpc.start()                                     extensions/nvim/index.ts registers:
-   lockfile.create()                               - hooks (editor state, lifecycle)
-          |                                      - tool (nvim_context)
-          v                                      - command (/neovim:settings)
-~/.local/share/nvim/pi-nvim/                       - renderers (connection, diagnostics)
-<cwd-hash>-<pid>.json                                           |
-          |                                          session_start discovers lockfile
-          |                                          before_agent_start queries splits
-          |                                          tool_result reloads files
-          |                                          turn_end requests diagnostics
+   serverstart(<socket>)                            extensions/nvim/index.ts registers:
+   lockfile.create()                                - hooks (editor state, reloads, diagnostics)
+          |                                         - tool: nvim_context
+          v                                         - command: /neovim:settings
+<stdpath('data')>/pi-nvim/                          - renderers (connection, diagnostics)
+<cwd-hash>-<pid>.json                               - shared config/events for optional features
+          |                                                   |
+          |                                      session_start discovers/selects lockfile
+          |                                      before_agent_start queries splits when
+          |                                        editor state injection is enabled
+          |                                      tool_result reloads edit/write files
+          |                                      turn_end requests diagnostics for modified files
           v                                                   |
    nvim --server <socket> --remote-expr <luaeval(...)> <------+
 
@@ -239,8 +306,8 @@ Core (src/) has zero Pi dependencies:
   format.ts        shared formatting helpers
 
 Additional extensions:
-  splits-autocomplete/       @vim: autocomplete for open splits
-  undo/                       /neovim:undotree plus disabled-by-default persistent undo update hooks
+  extensions/splits-autocomplete/       @vim: autocomplete for open splits
+  extensions/undo/                      /neovim:undotree plus disabled-by-default persistent undo update hooks
 
 Additional Lua features:
   cli/terminal     open/close/toggle Pi in a split or float
@@ -249,3 +316,20 @@ Additional Lua features:
 ```
 
 The TypeScript extension discovers Neovim instances through lockfiles, then queries the running editor through `nvim --remote-expr`, which evaluates `require("pi-nvim").query(...)` inside Neovim.
+
+## Development
+
+```bash
+pnpm install
+pnpm typecheck
+pnpm lint
+pnpm test
+```
+
+Use `pnpm format` to apply Biome fixes. Package releases use Changesets:
+
+```bash
+pnpm changeset
+pnpm version
+pnpm release
+```
