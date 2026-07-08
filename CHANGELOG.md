@@ -1,5 +1,11 @@
 # @aliou/nvim-pi
 
+## 0.7.0
+
+### Minor Changes
+
+- 62f13e6: Allow other Pi extensions to register custom file-writing tools for persistent-undo updates via the `neovim:undo:register-tool` event.
+
 ## 0.6.1
 
 ### Patch Changes
