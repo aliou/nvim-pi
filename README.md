@@ -87,6 +87,40 @@ The Pi extension also:
 - sends LSP diagnostics for modified files after the turn ends
 - optionally injects visible editor state into each turn when enabled
 
+### Register custom tools for persistent undo
+
+By default, persistent-undo updates only wrap the built-in `edit` and `write`
+tools. Other Pi extensions can register their own file-writing tools so that
+their changes also update Neovim persistent undo files.
+
+Emit the registration event from the extension that defines the tool:
+
+```ts
+pi.events.emit("neovim:undo:register-tool", "my_path_based_tool");
+```
+
+For tools that do not use `input.path`, provide a resolver:
+
+```ts
+pi.events.emit("neovim:undo:register-tool", {
+  toolName: "apply_patch",
+  resolvePaths: ({ input }) => {
+    const { hunks } = parsePatch(input as string);
+    return hunks.map((h) =>
+      h.type === "update" && h.movePath ? h.movePath : h.path,
+    );
+  },
+});
+```
+
+The resolver receives the tool name, call ID, tool input, and working directory,
+and returns the affected file path or paths. Paths are resolved relative to the
+Pi working directory. Files that do not exist before the tool runs or are
+deleted by the tool are skipped, matching Neovim's default behavior.
+
+nvim-pi emits `neovim:undo:request-tools` on startup; extensions loaded before
+nvim-pi should listen for this event and re-emit their registrations.
+
 ## Setup
 
 ### As a Neovim plugin

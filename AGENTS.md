@@ -53,10 +53,11 @@ extensions/
     provider.ts             # Autocomplete logic
     completion.ts           # Completion helpers
   undo/                     # Persistent undo command + disabled-by-default update hooks
-    index.ts                # Extension entry
+    index.ts                # Extension entry; registers hooks immediately and gates by config inside handlers
     commands/               # /neovim:undotree command
     hooks/                  # edit/write tracking hooks that update Neovim persistent undo files
     components/             # Undo tree overlay and picker UI
+    types.ts                # Event protocol for registering custom tools with the undo hooks
 
 lua/
   pi-nvim/                 # Neovim plugin
@@ -71,6 +72,23 @@ lua/
 ## Entry point deviation
 
 This extension intentionally deviates from the standard load-config -> check-enabled -> register pattern. It has no `enabled` toggle because the extension must remain loadable both when bundled by the Neovim plugin and when installed directly via `pi install`. When Neovim is not running, all hooks and tools degrade gracefully instead of disabling the extension entirely.
+
+## Undo hook registration protocol
+
+Other Pi extensions can opt their file-writing tools into persistent-undo
+updates by emitting `neovim:undo:register-tool` on the shared `pi.events` bus.
+
+Valid registrations:
+- a string tool name (uses `input.path`)
+- `{ toolName: string, resolvePaths?: ({ input, cwd }) => string | string[] }`
+
+The hook stores the resolver, snapshots existing files on `tool_call`, and
+updates the matching Neovim undo files on successful `tool_result`. Missing or
+deleted files are skipped.
+
+`extensions/undo/hooks/index.ts` registers listeners immediately on extension
+load and emits `neovim:undo:request-tools` so earlier-loaded extensions can
+re-register.
 
 ## Documentation
 

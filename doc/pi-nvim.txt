@@ -207,8 +207,13 @@ nvim_context
     Pi autocomplete prefix for visible Neovim split file paths.
 
 Persistent undo integration
-    When enabled, hooks track successful Pi edit/write tool calls and update the
-    matching Neovim persistent undo files.
+    When enabled, hooks track successful Pi edit/write tool calls and update
+    the matching Neovim persistent undo files. Other Pi extensions can register
+    additional file-writing tools by emitting the
+    `neovim:undo:register-tool` event with a tool name, or with an object
+    containing `toolName` and an optional `resolvePaths` function that returns
+    one or more affected file paths. nvim-pi emits
+    `neovim:undo:request-tools` on startup so extensions can re-register.
 
 ==============================================================================
 8. NOTES                                                        *pi-nvim-notes*
