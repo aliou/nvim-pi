@@ -15,7 +15,7 @@ local function get_plugin_root()
 end
 
 --- Check if nvim-pi is installed as a Pi package
---- Parses `pi list` for npm or git installs of nvim-pi
+--- Parses `pi list` for npm or git installs of nvim-pi.
 ---@return boolean|nil true if found, false if not, nil if check failed
 local function is_installed_globally()
   local ok, out = pcall(vim.fn.system, { 'pi', 'list' })
@@ -88,6 +88,17 @@ function M.open()
     return
   end
 
+  -- herdr-backed path: split a herdr pane off the current pane and start Pi
+  -- there. Only active when opted in and Neovim itself runs inside herdr.
+  local herdr = require('pi-nvim.cli.herdr')
+  if herdr.active() then
+    if herdr.open() then
+      return
+    end
+    -- false: configured layout is unsupported in herdr; fall through to the
+    -- normal Neovim split path.
+  end
+
   local term = terminal.get_current()
   if term then
     if not terminal.is_open(term) then
@@ -107,6 +118,25 @@ end
 
 --- Close Pi terminal (kills process)
 function M.close()
+  local herdr = require('pi-nvim.cli.herdr')
+  if herdr.active() and herdr.is_open() then
+    herdr.close()
+    return
+  end
+  local term = terminal.get_current()
+  if term then
+    terminal.close(term)
+    watch.disable()
+  end
+end
+
+--- Tear down resources owned by Neovim without closing an independent herdr
+--- pane. A later Neovim launch reattaches to its cwd-derived Pi agent.
+function M.on_vim_leave()
+  local herdr = require('pi-nvim.cli.herdr')
+  if herdr.active() then
+    herdr.detach()
+  end
   local term = terminal.get_current()
   if term then
     terminal.close(term)
@@ -116,6 +146,11 @@ end
 
 --- Toggle Pi terminal
 function M.toggle()
+  local herdr = require('pi-nvim.cli.herdr')
+  if herdr.active() and herdr.is_open() then
+    herdr.close()
+    return
+  end
   local term = terminal.get_current()
   if term and terminal.is_open(term) then
     M.close()
@@ -127,6 +162,10 @@ end
 --- Check if Pi terminal is open
 ---@return boolean
 function M.is_open()
+  local herdr = require('pi-nvim.cli.herdr')
+  if herdr.active() and herdr.is_open() then
+    return true
+  end
   local term = terminal.get_current()
   return term ~= nil and terminal.is_open(term)
 end

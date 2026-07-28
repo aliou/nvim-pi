@@ -13,7 +13,7 @@ function M.setup(opts)
   vim.api.nvim_create_autocmd('VimLeavePre', {
     group = group,
     callback = function()
-      cli.close()
+      cli.on_vim_leave()
       rpc.stop()
     end,
   })

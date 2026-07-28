@@ -228,8 +228,48 @@ require("pi-nvim").setup({
       picker = { "<C-Space>", mode = "t", desc = "Open context picker" },
     },
   },
+
+  -- Run Pi inside a herdr pane when Neovim itself runs inside herdr.
+  -- Opt-in; disabled by default. See "herdr" section below.
+  herdr = {
+    enabled = false,
+    agent_name = nil, -- default: pi-<cwd-basename>-<hash>
+    focus = true, -- focus the new Pi pane after splitting
+  },
 })
 ```
+
+## herdr
+
+[herdr](https://herdr.dev) is a terminal agent multiplexer. When you run Neovim
+*inside* a herdr pane and enable `herdr.enabled`, the open-Pi mapping does not
+open a Neovim terminal buffer. Instead it splits the herdr pane Neovim lives in
+and starts Pi in the new herdr pane, so Pi is a sibling pane to Neovim with full
+herdr lifecycle detection. Pi remains in herdr when Neovim exits; opening Pi
+again reattaches to the same agent instead of creating another pane. The agent
+is named `pi-<cwd-basename>-<hash>` by default; override it with
+`herdr.agent_name`.
+
+This only activates when `herdr.enabled = true` **and** Neovim is detected inside
+herdr (`HERDR_ENV=1` with `HERDR_SOCKET_PATH`/`HERDR_PANE_ID` set). Otherwise the
+normal Neovim split behavior is unchanged.
+
+Layout mapping reuses `win.*`:
+
+| `win.layout` | herdr action |
+| --- | --- |
+| `right` | split right |
+| `bottom` | split down |
+| `auto` | `right` when columns >= `win.width_threshold`, else `bottom` |
+| `left`, `top`, `float` | unsupported in herdr; fall back to the Neovim split |
+
+`win.width`/`win.height` are converted to a split ratio against the terminal
+size. Pi is launched through `herdr pane run` with the same argv `build_cmd()`
+would have used (including `--extension <root>`), so the bundled extension and
+any `models`/`provider`/`extra_args` flags still apply. On Unix, Pi replaces the
+initial shell with `exec`. Install herdr's Pi integration (`herdr integration
+install pi`) for native lifecycle and session restore reporting. `close()` or
+`toggle()` closes the Pi herdr pane.
 
 ## Keymaps
 
