@@ -2,8 +2,8 @@
  * Neovim Context Hook
  *
  * Lifecycle events:
- * - session_start: auto-connects to Neovim instance
- * - before_agent_start: injects editor state (splits, cursor position)
+ * - session_start: auto-connects to Neovim instance, reflected in the status bar
+ * - before_agent_start: injects editor state (splits, cursor position) when connected
  * - tool_result: reloads files in Neovim when write/edit tools complete
  * - turn_end: sends LSP errors for modified files
  */
@@ -12,7 +12,11 @@ import * as path from "node:path";
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { formatPath } from "../../../src/format";
-import { discoverNvim, queryNvim } from "../../../src/nvim";
+import {
+  discoverNvim,
+  formatConnectionStatus,
+  queryNvim,
+} from "../../../src/nvim";
 import {
   isDiagnosticsForFilesResult,
   isSplitsResult,
@@ -20,7 +24,11 @@ import {
 } from "../../../src/types";
 import type { ResolvedNvimConfig } from "../config";
 import type { NvimConnectionState } from "../connection";
-import { clearNvimSocket, resolveNvimSocket } from "../connection";
+import {
+  clearNvimSocket,
+  isNvimConnectionLost,
+  resolveNvimSocket,
+} from "../connection";
 
 // ============================================================================
 // Helpers
@@ -94,12 +102,18 @@ export function registerNvimContextHook(
     // Reset state
     clearNvimSocket(state);
     state.modifiedFilesThisTurn = new Set();
+    ctx.ui.setStatus("nvim", undefined);
+
+    // Connection state is status-only: shown in the footer, never as a session message.
+    const setConnectionStatus = (text: string) => {
+      if (shouldShowConnectionMessages()) {
+        ctx.ui.setStatus("nvim", text);
+      }
+    };
 
     const instances = discoverNvim(ctx.cwd);
     if (instances.length === 0) {
-      if (shouldShowConnectionMessages()) {
-        ctx.ui.notify("nvim: no instance found", "info");
-      }
+      setConnectionStatus(formatConnectionStatus("none"));
       return;
     }
 
@@ -112,18 +126,11 @@ export function registerNvimContextHook(
     });
 
     if (result.error) {
-      if (shouldShowConnectionMessages()) {
-        // Determine status from error message
-        const status = result.error.includes("Multiple") ? "multiple" : "none";
-        const instanceCount =
-          status === "multiple" ? instances.length : undefined;
-        pi.sendMessage({
-          customType: "nvim-connection",
-          content: `nvim: ${result.error}`,
-          display: true,
-          details: { status, instanceCount },
-        });
-      }
+      setConnectionStatus(
+        formatConnectionStatus(
+          result.error.includes("Multiple") ? "multiple" : "none",
+        ),
+      );
       return;
     }
 
@@ -131,24 +138,15 @@ export function registerNvimContextHook(
       return;
     }
 
-    if (shouldShowConnectionMessages()) {
-      // Find matching instance for PID display
-      const matchedInstance = instances.find(
-        (i) => i.lockfile.socket === result.socket,
-      );
-      const pid = matchedInstance?.lockfile.pid;
-
-      pi.sendMessage({
-        customType: "nvim-connection",
-        content: `nvim: connected${pid ? ` (PID ${pid})` : ""}`,
-        display: true,
-        details: {
-          status: "connected",
-          pid,
-          socket: result.socket,
-        },
-      });
-    }
+    // Find matching instance for PID display
+    const matchedInstance = instances.find(
+      (i) => i.lockfile.socket === result.socket,
+    );
+    setConnectionStatus(
+      formatConnectionStatus("connected", {
+        pid: matchedInstance?.lockfile.pid,
+      }),
+    );
 
     // Notify Neovim via RPC
     try {
@@ -172,6 +170,13 @@ export function registerNvimContextHook(
   pi.on("before_agent_start", async (event, ctx) => {
     // Reset modified files tracking for new prompt
     state.modifiedFilesThisTurn = new Set();
+
+    if (isNvimConnectionLost(state)) {
+      clearNvimSocket(state);
+      if (shouldShowConnectionMessages()) {
+        ctx.ui.setStatus("nvim", formatConnectionStatus("disconnected"));
+      }
+    }
 
     if (!shouldInjectEditorState() || !state.socket) return;
 

@@ -251,6 +251,33 @@ export function discoverNvim(cwd: string): DiscoverResult {
   });
 }
 
+export type NvimConnectionStatus =
+  | "connected"
+  | "disconnected"
+  | "multiple"
+  | "none";
+
+/**
+ * Short status-bar text describing the Neovim connection state.
+ */
+export function formatConnectionStatus(
+  status: NvimConnectionStatus,
+  options?: { pid?: number },
+): string {
+  switch (status) {
+    case "connected":
+      return options?.pid
+        ? `nvim: connected (PID ${options.pid})`
+        : "nvim: connected";
+    case "disconnected":
+      return "nvim: disconnected";
+    case "multiple":
+      return "nvim: multiple instances";
+    case "none":
+      return "nvim: no instance found";
+  }
+}
+
 export type NvimAction = string | { type: string; [key: string]: unknown };
 
 // TODO: Strongly type the return value based on action.

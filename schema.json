@@ -41,7 +41,7 @@
           "type": "boolean"
         },
         "showConnectionMessages": {
-          "description": "Show Neovim connection status messages in chat.",
+          "description": "Show Neovim connection status in the Pi status bar.",
           "type": "boolean"
         }
       },

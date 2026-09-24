@@ -18,7 +18,7 @@ export interface NvimConfigUpdatedPayload {
 
 /** Settings for the main Neovim integration extension. */
 export interface NvimCoreConfig {
-  /** Show Neovim connection status messages in chat. */
+  /** Show Neovim connection status in the Pi status bar. */
   showConnectionMessages?: boolean;
   /** Inject current editor state (splits, cursor) into each prompt. */
   injectEditorState?: boolean;

@@ -73,9 +73,9 @@ export function registerNeovimSettings(
           items: [
             {
               id: "showConnectionMessages",
-              label: "Connection status messages",
+              label: "Connection status",
               description:
-                "Show Neovim connection status messages in chat (connected/disconnected/no instance/multiple instances).",
+                "Show Neovim connection status in the Pi status bar (connected/disconnected/no instance/multiple instances).",
               currentValue: showMessages ? "on" : "off",
               values: ["on", "off"],
             },

@@ -64,7 +64,7 @@ Available settings:
 
 | Setting | Default | Description |
 |---|---|---|
-| `Connection status messages` | `on` | Show `nvim: connected` / `no instance found` style messages in the Pi session |
+| `Connection status` | `on` | Show `nvim: connected` / `no instance found` style status in the Pi status bar |
 | `Editor state injection` | `off` | Inject current Neovim editor state into each prompt automatically |
 | `@vim: autocomplete` | `enabled` | Enable autocomplete for open Neovim splits |
 | `Persistent undo tools` | `disabled` | Update Neovim persistent undo files after successful Pi `edit` and `write` tool calls |
@@ -270,7 +270,7 @@ Commands and API:
 - `require("pi-nvim").is_open()` - check if the Pi terminal is open
 
 Pi extension commands:
-- `/neovim:settings` - configure connection messages, `@vim:` autocomplete, and persistent undo integration
+- `/neovim:settings` - configure connection status, `@vim:` autocomplete, and persistent undo integration
 - `/neovim:undotree [file]` - open a persistent undo tree overlay for a file; when no file is provided, Pi shows a picker if UI is available
 
 ## Troubleshooting
