@@ -4,7 +4,7 @@ import * as path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { cwdHash, discoverNvim } from "./nvim";
+import { cwdHash, discoverNvim, formatConnectionStatus } from "./nvim";
 
 const TEST_APP_NAME = "nvim-test";
 
@@ -141,5 +141,23 @@ describe("discoverNvim", () => {
 
     expect(discovered).toHaveLength(1);
     expect(discovered[0]?.lockfile.cwd).toBe(realSubdir);
+  });
+});
+
+describe("formatConnectionStatus", () => {
+  it("includes the PID when connected with a known PID", () => {
+    expect(formatConnectionStatus("connected", { pid: 1234 })).toBe(
+      "nvim: connected (PID 1234)",
+    );
+  });
+
+  it("omits the PID when connected without a known PID", () => {
+    expect(formatConnectionStatus("connected")).toBe("nvim: connected");
+  });
+
+  it("describes disconnected, multiple and missing instances", () => {
+    expect(formatConnectionStatus("disconnected")).toBe("nvim: disconnected");
+    expect(formatConnectionStatus("multiple")).toBe("nvim: multiple instances");
+    expect(formatConnectionStatus("none")).toBe("nvim: no instance found");
   });
 });

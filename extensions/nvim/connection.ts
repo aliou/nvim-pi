@@ -159,6 +159,17 @@ export async function resolveNvimSocket(
 }
 
 /**
+ * Whether the cached connection's lockfile disappeared (Neovim exited).
+ */
+export function isNvimConnectionLost(state: NvimConnectionState): boolean {
+  return (
+    state.socket !== null &&
+    state.lockfile !== null &&
+    !existsSync(state.lockfile)
+  );
+}
+
+/**
  * Clear the cached socket so the next resolution triggers rediscovery.
  */
 export function clearNvimSocket(state: NvimConnectionState): void {

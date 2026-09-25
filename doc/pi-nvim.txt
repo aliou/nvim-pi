@@ -133,7 +133,7 @@ win.keys                                                    *pi-nvim-config-win-
     Window-local key definitions for close, stopinsert, suspend, and picker.
 
 Pi extension settings:
-    /neovim:settings exposes connection status messages, editor state injection,
+    /neovim:settings exposes connection status, editor state injection,
     @vim: autocomplete, and persistent undo integration toggles. The @vim:
     autocomplete provider is enabled by default. Editor state injection and
     persistent undo updates are disabled by default.
@@ -196,7 +196,7 @@ nvim_context
     or the current function.
 
 /neovim:settings
-    Pi command for configuring connection status messages, editor state injection,
+    Pi command for configuring connection status, editor state injection,
     @vim: autocomplete, and persistent undo integration.
 
 /neovim:undotree [file]
