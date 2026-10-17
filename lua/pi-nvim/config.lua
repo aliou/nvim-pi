@@ -13,6 +13,14 @@ local M = {}
 ---@field keys table<string, pi.Keymap|false>
 ---@field focus_source_on_stopinsert boolean Switch to source window on stopinsert (default: true)
 
+--- Run Pi inside a herdr pane when Neovim itself runs inside herdr.
+--- Opt-in; disabled by default. Only `right`/`bottom`/`auto` layouts are
+--- supported; `left`/`top`/`float` fall back to the normal Neovim split.
+---@class pi.HerdrConfig
+---@field enabled boolean Opt in to herdr-backed splits (default: false)
+---@field agent_name? string Name assigned after Herdr detects Pi (default: pi-<cwd-basename>-<hash>)
+---@field focus? boolean Focus the new Pi pane (default: true)
+
 ---@class pi.Config
 ---@field auto_start? boolean Start RPC server on setup (default: true)
 ---@field data_dir? string Override for lockfile/socket directory
@@ -23,6 +31,7 @@ local M = {}
 ---@field load_extension? boolean|"auto" Pass bundled extension via --extension (default: "auto", skips if installed globally)
 ---@field extra_args? string[] Additional CLI arguments
 ---@field win? pi.WinConfig Window configuration
+---@field herdr? pi.HerdrConfig herdr-backed split configuration
 
 ---@type pi.Config
 M.defaults = {
@@ -40,6 +49,10 @@ M.defaults = {
       suspend = { '<C-z>', mode = 't', desc = 'Suspend Neovim' },
       picker = { '<C-Space>', mode = 't', desc = 'Open context picker' },
     },
+  },
+  herdr = {
+    enabled = false,
+    focus = true,
   },
 }
 

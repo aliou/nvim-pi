@@ -91,6 +91,11 @@ When opening Pi from Neovim, the plugin launches:
           picker = { "<C-Space>", mode = "t", desc = "Open context picker" },
         },
       },
+      herdr = {
+        enabled = false,
+        agent_name = nil,
+        focus = true,
+      },
     })
 <
 
@@ -131,6 +136,32 @@ win.focus_source_on_stopinsert         *pi-nvim-config-win-focus_source_on_stopi
 
 win.keys                                                    *pi-nvim-config-win-keys*
     Window-local key definitions for close, stopinsert, suspend, and picker.
+
+herdr                                                      *pi-nvim-config-herdr*
+    Run Pi inside a herdr pane when Neovim itself runs inside herdr. Opt-in;
+    disabled by default. When active, the open-Pi mapping splits the herdr pane
+    Neovim lives in (using `win.layout`/`win.width`/`win.height`) and starts Pi
+    through `herdr pane run` in the new pane instead of opening a Neovim
+    terminal buffer. Only `right`/`bottom`/`auto` layouts are supported;
+    `left`/`top`/`float` fall back to the normal Neovim split.
+
+    On Unix, Pi replaces the initial shell with `exec` after the pane opens.
+
+    Pi remains in herdr when Neovim exits. Opening Pi after restarting Neovim
+    reattaches to the same Pi agent instead of creating another pane.
+
+    Only activates when `herdr.enabled = true` and Neovim is detected inside
+    herdr (`HERDR_ENV=1` with `HERDR_SOCKET_PATH`/`HERDR_PANE_ID` set).
+
+herdr.enabled                                          *pi-nvim-config-herdr-enabled*
+    Opt in to herdr-backed splits. Default: false.
+
+herdr.agent_name                                  *pi-nvim-config-herdr-agent_name*
+    Name assigned after Herdr detects Pi. Must match [a-z][a-z0-9_-]{0,31}.
+    Default: pi-<cwd-basename>-<hash>, stable per working directory.
+
+herdr.focus                                              *pi-nvim-config-herdr-focus*
+    Focus the new Pi pane after splitting. Default: true.
 
 Pi extension settings:
     /neovim:settings exposes connection status messages, editor state injection,
